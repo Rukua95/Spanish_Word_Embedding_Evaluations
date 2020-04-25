@@ -13,53 +13,91 @@ LEXICOGRAFICO = "Lexicografico"
 DATA_TYPE = [DERIVACION, INFLEXION, ENCICLOPEDIA, LEXICOGRAFICO]
 RESTRICTED_RELATIONS = []
 
-# Most similar vector using cosene similarity
-def get_cosene_similar_cosmul(embedding, a, b, c):
-    res = embedding.most_similar_cosmul(positive=[b, c], negative=[a])
-    return res[0][0]
+DEBUG = True
 
-def get_cosene_similar(embedding, a, b, c):
-    res = embedding.most_similar(positive=[b, c], negative=[a])
-    return res[0][0]
+# Retorna 1 o 0, dependiendo de si se encontro determino la analogia
+def get_cosene_similar_cosmul(embedding, p1, p2, q1, q2):
+    for a in p1:
+        for b in p2:
+            for c in q1:
+                res = 0
+                try:
+                    res = embedding.most_similar_cosmul(positive=[b, c], negative=[a])
+                except:
+                    res = [['']]
 
-def get_cos(embedding, a, b, c, d):
-    a = embedding[a]
-    b = embedding[b]
-    c = embedding[c]
-    d = embedding[d]
+                res = res[0][0]
+                if DEBUG:
+                    print(">>> " + res)
 
-    res = np.dot(b - a, d - c) / (np.linalg.norm(b - a)*np.linalg.norm(d - c))
-    return res
+                if res in q2:
+                    return 1
+
+    return 0
+
+def get_cosene_similar(embedding, p1, p2, q1, q2):
+    for a in p1:
+        for b in p2:
+            for c in q1:
+                res = 0
+                try:
+                    res = embedding.most_similar(positive=[b, c], negative=[a])
+                except:
+                    res = [['']]
+
+                res = res[0][0]
+                if DEBUG:
+                    print(">>> " + res)
+
+                if res in q2:
+                    return 1
+
+    return 0
+
+def get_cos(embedding, p1, p2, q1, q2):
+    result = -1.0
+    for a in p1:
+        for b in p2:
+            for c in q1:
+                for d in q2:
+                    # TODO: caso en que palabra no esta en embedding
+                    a_vec = embedding[a]
+                    b_vec = embedding[b]
+                    c_vec = embedding[c]
+                    d_vec = embedding[d]
+
+                    r = np.dot(b_vec - a_vec, d_vec - c_vec) / (np.linalg.norm(b_vec - a_vec)*np.linalg.norm(d_vec - c_vec))
+                    if r > result:
+                        result = r
+
+    return result
 
 
-def get_euc(embedding, a, b, c, d):
-    a = embedding[a]
-    b = embedding[b]
-    c = embedding[c]
-    d = embedding[d]
+def get_euc(embedding, p1,p2, q1, q2):
+    result = -1.0
+    for a in p1:
+        for b in p2:
+            for c in q1:
+                for d in q2:
+                    # TODO: caso en que palabra no esta en embedding
+                    a_vec = embedding[a]
+                    b_vec = embedding[b]
+                    c_vec = embedding[c]
+                    d_vec = embedding[d]
 
-    res = np.linalg((b - a) - (d - c)) / (np.linalg.norm(b - a) + np.linalg.norm(d - c))
-    return res
+                    r = np.linalg((b_vec - a_vec) - (d_vec - c_vec)) / (np.linalg.norm(b_vec - a_vec) + np.linalg.norm(d_vec - c_vec))
+                    if r > result:
+                        result = r
+
+    return result
 
 
 def get_n_cos(embedding, a, b, c, d):
-    a = embedding.word_vec(a, True)
-    b = embedding.word_vec(b, True)
-    c = embedding.word_vec(c, True)
-    d = embedding.word_vec(d, True)
-
-    res = np.dot(b - a, d - c) / (np.linalg.norm(b - a) * np.linalg.norm(d - c))
-    return res
+    pass
 
 
 def get_n_euc(embedding, a, b, c, d):
-    a = embedding.word_vec(a, True)
-    b = embedding.word_vec(b, True)
-    c = embedding.word_vec(c, True)
-    d = embedding.word_vec(d, True)
-
-    res = np.linalg((b - a) - (d - c)) / (np.linalg.norm(b - a) + np.linalg.norm(d - c))
-    return res
+    pass
 
 
 def pair_dist(embedding, a, b, c, d):
@@ -86,44 +124,32 @@ def get_test_files():
 
 # Retorna los resultados de cada metrica para la tupla dada
 def evaluation(p1, p2, q1, q2, embedding, file_name, all_variation, all_scores):
-    puntajes_Che = [-1, -1, -1, -1]
-    puntaje_sim_cos = [0, 0]
-    cantidad_relaciones = [1, 1]
+    # Calculo de similaridad 3CosMul
+    res_sim_cosmul = get_cosene_similar_cosmul(embedding, p1, p2, q1, q2)
+    cant_sim_cosmul = 1
+
     if all_variation:
-        if file_name in RESTRICTED_RELATIONS:
-            cantidad_relaciones = [2, 2]
-        else:
-            cantidad_relaciones = [4, 4]
+        res_sim_cosmul += get_cosene_similar_cosmul(embedding, q1, q2, p1, p2)
+        cant_sim_cosmul += 1
 
-    verificar_cos_add = False
-    verificar_cos_mul = False
-    for a in p1:
-        for b in p2:
-            for c in q1:
-                r = get_cosene_similar_cosmul(embedding, a, b, c)
-                if r in q2 and not verificar_cos_add:
-                    puntaje_sim_cos[0] += 1
-                    verificar_cos_add = True
+        if file_name not in RESTRICTED_RELATIONS:
+            res_sim_cosmul += get_cosene_similar_cosmul(embedding, q1, q2, p1, p2)
+            res_sim_cosmul += get_cosene_similar_cosmul(embedding, q1, q2, p1, p2)
 
-                if not all_scores:
-                    continue
+            cant_sim_cosmul += 2
 
-                r = get_cosene_similar(embedding, a, b, c)
-                if r in q2 and not verificar_cos_mul:
-                    puntaje_sim_cos[0] += 1
-                    verificar_cos_mul = True
 
-                for d in q2:
-                    # TODO: elegir el maximo
-                    puntajes_Che[0] = get_cos(embedding, a, b, c, d)
-                    puntajes_Che[1] = get_euc(embedding, a, b, c, d)
-                    puntajes_Che[2] = get_n_cos(embedding, a, b, c, d)
-                    puntajes_Che[3] = get_n_euc(embedding, a, b, c, d)
 
-    if not all_variation:
-        return
+    results = [[res_sim_cosmul, cant_sim_cosmul]]
 
-    # TODO: hacer todas las relacions
+    if not all_scores:
+        return results
+
+    #TODO: calculo de otras metricas
+
+
+    return results
+
 
 
 # Analogy test
@@ -159,7 +185,12 @@ def analogy_test(embedding, name, all_variation=False, all_scores=False):
 
     results = {}
 
-    count = 1
+    count = 0
+
+    print("all_variation: ", end='')
+    print(all_variation)
+    print("all_scores: ", end='')
+    print(all_scores)
 
     # Realizacion de los test
     for file in test_files:
@@ -177,14 +208,16 @@ def analogy_test(embedding, name, all_variation=False, all_scores=False):
 
         n = len(test_pairs)
 
-        answer = []
-        solution = []
-
         # Realizamos las analogias para cada par de relaciones.
+        results = [[0, 0]]
         for i in range(n):
             for j in range(n):
                 if j == i:
                     continue
+
+                if i == 0 and DEBUG:
+                    print(test_pairs[i], end=' ')
+                    print(test_pairs[j])
 
                 p = test_pairs[i]
                 p1 = p[0].split('/')
@@ -194,26 +227,25 @@ def analogy_test(embedding, name, all_variation=False, all_scores=False):
                 q1 = q[0].split('/')
                 q2 = q[1].split('/')
 
-                q2 = q[1]
-
                 # Evaluamos la 4-tupla.
-                result = evaluation(p1, p2, q1, q2, embedding, test_file.split("\\")[-1], all_variation, all_scores)
+                res = evaluation(p1, p2, q1, q2, embedding, test_file.split("\\")[-1], all_variation, all_scores)
 
-                # result es un diccionario con los distintos resultados.
-                # -> puntaje de mas similar: accuracy / cantidad de tuplas
-                # -> puntaje cos, euc, n_cos, n_euc: suma de puntajes / cantidad de tuplas
+                if i == 0 and DEBUG:
+                    print(res)
 
-                # TODO: procesar el puntaje parcial
+                # Resultados de similaridad 3CosMul
+                results[0][0] += res[0][0]
+                results[0][1] += res[0][1]
 
-        # TODO: procesar el puntaje total
-
-        #with io.open(result_path + "\\" + name + "_" + test_file.split("\\")[-1], 'w') as f:
-        #    f.write(str(accuracy))
-
-        #print(name + "_" + test_file.split("\\")[-1])
-        #print("...Complete with score: " + str(accuracy))
+                # Resultados de similaridad 3CosAdd
 
 
+        print(results[0][0], end='/')
+        print(results[0][1])
+        print("accuracy: ", end='')
+        print(results[0][0] / results[0][1])
+
+        break
 
     return results
 
