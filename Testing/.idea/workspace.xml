@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="1c3f388a-7408-475d-8fbf-6b617ab31bb8" name="Default Changelist" comment="" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Jupyter Notebook" />
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectId" id="1U5fHczQzmXGmJlmay2u03mBJWo" />
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="AnalogyTest" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Testing" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/AnalogyTest.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.AnalogyTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1c3f388a-7408-475d-8fbf-6b617ab31bb8" name="Default Changelist" comment="" />
+      <created>1574651289246</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1574651289246</updated>
+      <workItem from="1574651291669" duration="5206000" />
+      <workItem from="1574701071494" duration="2537000" />
+      <workItem from="1574824138111" duration="1244000" />
+      <workItem from="1577309925967" duration="2718000" />
+      <workItem from="1577494382734" duration="866000" />
+      <workItem from="1577565238768" duration="5202000" />
+      <workItem from="1585084470620" duration="68667000" />
+      <workItem from="1585519368936" duration="29140000" />
+      <workItem from="1586030535560" duration="6415000" />
+      <workItem from="1586118998036" duration="7527000" />
+      <workItem from="1586207624271" duration="1229000" />
+      <workItem from="1586219959081" duration="13761000" />
+      <workItem from="1586300448762" duration="9125000" />
+      <workItem from="1586444905507" duration="4245000" />
+      <workItem from="1586461446834" duration="13419000" />
+      <workItem from="1586625671727" duration="17488000" />
+      <workItem from="1586704977292" duration="11304000" />
+      <workItem from="1586782295317" duration="12311000" />
+      <workItem from="1586877661048" duration="7786000" />
+      <workItem from="1586903949075" duration="3692000" />
+      <workItem from="1586961061416" duration="12572000" />
+      <workItem from="1587228018813" duration="11831000" />
+      <workItem from="1587311416345" duration="681000" />
+      <workItem from="1587502393188" duration="19688000" />
+      <workItem from="1587614226687" duration="2426000" />
+      <workItem from="1587689149335" duration="5321000" />
+      <workItem from="1587830688866" duration="2901000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Testing$AnalogyTest.coverage" NAME="AnalogyTest Coverage Results" MODIFIED="1586903833384" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+  </component>
+</project>
