@@ -1,60 +1,64 @@
 import os
 import io
+import shutil
 
 import numpy as np
 
-RES_PATH = "D:\\Documents\\Memoria - Eval. Word Embeddings\\Data\\Results_Bats"
-PATH = "D:\\Documents\\Memoria - Eval. Word Embeddings\\Data\\BATS_español"
-DERIVACION = "Derivacion"
-INFLEXION = "Enciclopedia"
-ENCICLOPEDIA = "Inflexion"
-LEXICOGRAFICO = "Lexicografico"
+from pathlib import Path
 
-DATA_TYPE = [DERIVACION, INFLEXION, ENCICLOPEDIA, LEXICOGRAFICO]
-RESTRICTED_RELATIONS = []
+CURRENT_PATH = os.getcwd()
+path = Path(CURRENT_PATH)
 
-DEBUG = True
+###########################################################################################
+# METRICAS
+###########################################################################################
 
-# Retorna 1 o 0, dependiendo de si se encontro determino la analogia
-def get_cosene_similar_cosmul(embedding, p1, p2, q1, q2):
+"""
+Retorna 1 o 0 si se logra determinar la palabra d, dentro de relacion a:b = c:d
+utilizando 3CosMul como funcion de similaridad
+"""
+def getCoseneSimilarCosmul(embedding, p1, p2, q1, q2):
     for a in p1:
         for b in p2:
             for c in q1:
-                res = 0
+                res = ''
                 try:
                     res = embedding.most_similar_cosmul(positive=[b, c], negative=[a])
+                    res = res[0][0]
                 except:
-                    res = [['']]
-
-                res = res[0][0]
-                if DEBUG:
-                    print(">>> " + res)
+                    res = ''
 
                 if res in q2:
                     return 1
 
     return 0
 
-def get_cosene_similar(embedding, p1, p2, q1, q2):
+
+"""
+Retorna 1 o 0 si se logra determinar la palabra d, dentro de relacion a:b = c:d
+utilizando 3CosAdd como funcion de similaridad
+"""
+def getCoseneSimilar(embedding, p1, p2, q1, q2):
     for a in p1:
         for b in p2:
             for c in q1:
-                res = 0
+                res = ''
                 try:
                     res = embedding.most_similar(positive=[b, c], negative=[a])
+                    res = res[0][0]
                 except:
-                    res = [['']]
-
-                res = res[0][0]
-                if DEBUG:
-                    print(">>> " + res)
+                    res = ''
 
                 if res in q2:
                     return 1
 
     return 0
 
-def get_cos(embedding, p1, p2, q1, q2):
+
+"""
+Retorna maximo puntaje para la relacion a:b = c:d utilizando distancia coseno como funcion de puntaje
+"""
+def getCos(embedding, p1, p2, q1, q2):
     result = -1.0
     for a in p1:
         for b in p2:
@@ -73,7 +77,10 @@ def get_cos(embedding, p1, p2, q1, q2):
     return result
 
 
-def get_euc(embedding, p1,p2, q1, q2):
+"""
+Retorna maximo puntaje para la relacion a:b = c:d utilizando distancia euclidiana como funcion de puntaje
+"""
+def getEuc(embedding, p1,p2, q1, q2):
     result = -1.0
     for a in p1:
         for b in p2:
@@ -91,161 +98,170 @@ def get_euc(embedding, p1,p2, q1, q2):
 
     return result
 
+"""
+Retorna maximo puntaje para la relacion a:b = c:d utilizando distancia coseno como funcion de puntaje, en este
+caso, los vectores son unitarios
+"""
+def getNCos(embedding, p1,p2, q1, q2):
+    pass
 
-def get_n_cos(embedding, a, b, c, d):
+"""
+Retorna maximo puntaje para la relacion a:b = c:d utilizando distancia euclidiana como funcion de puntaje, en este
+caso, los vectores son unitarios
+"""
+def getNEuc(embedding, p1,p2, q1, q2):
     pass
 
 
-def get_n_euc(embedding, a, b, c, d):
+def getPairDist(embedding, p1,p2, q1, q2):
     pass
 
 
-def pair_dist(embedding, a, b, c, d):
-    pass
+###########################################################################################
+# FILES HANDLING
+###########################################################################################
 
+"""
+Obtencion de path hacia los distintos archivos de test de analogias
+"""
+def getTestFiles():
+    dataset_folder = path.parent / "Datasets/AnalogyDataset"
 
-######################################################################################################
+    if not dataset_folder.exists():
+        raise Exception('Dataset folder not found')
 
-# Obtencion de path hacia los distintos archivos de test de analogias
-def get_test_files():
     test_files = []
+    sub_dataset_folder = os.listdir(dataset_folder)
+    for folder in sub_dataset_folder:
+        sub_folder = dataset_folder / folder
 
-    for type in DATA_TYPE:
-        test_path = PATH + "\\" + type
-        print(test_path)
-
-        for file_name in os.listdir(test_path):
-            test_files.append(test_path + "\\" + file_name)
-
-
+        test_files = test_files + list(map(lambda f: sub_folder / f, os.listdir(sub_folder)))
 
     return test_files
 
 
-# Retorna los resultados de cada metrica para la tupla dada
-def evaluation(p1, p2, q1, q2, embedding, file_name, all_variation, all_scores):
-    # Calculo de similaridad 3CosMul
-    res_sim_cosmul = get_cosene_similar_cosmul(embedding, p1, p2, q1, q2)
-    cant_sim_cosmul = 1
+"""
+Obtencion de path hacia los dintintos archivos de test de analogias que no hayan sido evaluados aun
+"""
+def getUntestedFiles(test_files, embedding_name):
+    temp_result_path = path.parent / "TempResults/Analogy"
 
-    if all_variation:
-        res_sim_cosmul += get_cosene_similar_cosmul(embedding, q1, q2, p1, p2)
-        cant_sim_cosmul += 1
+    #if not temp_result_path.exists():
+    #    return test_files
 
-        if file_name not in RESTRICTED_RELATIONS:
-            res_sim_cosmul += get_cosene_similar_cosmul(embedding, q1, q2, p1, p2)
-            res_sim_cosmul += get_cosene_similar_cosmul(embedding, q1, q2, p1, p2)
-
-            cant_sim_cosmul += 2
-
-
-
-    results = [[res_sim_cosmul, cant_sim_cosmul]]
-
-    if not all_scores:
-        return results
-
-    #TODO: calculo de otras metricas
-
-
-    return results
-
-
-
-# Analogy test
-def analogy_test(embedding, name, all_variation=False, all_scores=False):
-    # En caso de que existan fallos durante el calculo de los puntajes, los puntajes se guardan en archivos separados
-    # y se continua en el siguiente despues del ultimo guardado.
-    test_files = get_test_files()
-
-    result_path = RES_PATH
-    last_results = os.listdir(result_path)
-    aux = []
-    for file in last_results:
-        if name in file:
-            aux.append(file)
-
-    last_results = aux
-    aux = []
-    print("Results saved:")
-    print(last_results)
+    test_files_list = []
     for file in test_files:
-        ver = True
-        for res_name in last_results:
-            if file.split("\\")[-1] in res_name:
-                ver = False
+        #print(file)
+        temp_result_file_path = temp_result_path / embedding_name / file.name
+        #print(temp_result_file_path)
 
-        if ver:
-            aux.append(file)
+        if not temp_result_file_path.exists():
+            test_files_list.append(file)
 
-    # Archivos con los test a usar para embedding.
-    test_files = aux
-    print("Test files: ")
-    print(test_files)
+    return test_files_list
 
-    results = {}
 
-    count = 0
+###########################################################################################
+# SAVE RESULTS
+###########################################################################################
 
-    print("all_variation: ", end='')
-    print(all_variation)
-    print("all_scores: ", end='')
-    print(all_scores)
+"""
+Guarda resultados de analogias de forma temporal
+"""
+def saveTempResults(embedding_name, test_file_name, results_list):
+    temp_analogy_results_folder = path.parent / "TempResults/Analogy"
+    temp_result_embedding = temp_analogy_results_folder / embedding_name
 
-    # Realizacion de los test
-    for file in test_files:
+    if not temp_result_embedding.exists():
+        os.makedirs(temp_result_embedding)
 
-        # Extraccion de los pares de palabras.
-        test_file = file
-        count += 1
-        test_pairs = []
-        print("Testing file number " + str(count) + " of " + str(len(test_files)) + ": " + test_file.split("\\")[-1])
+    temp_result_file = temp_result_embedding / test_file_name
 
-        with io.open(test_file, 'r') as f:
+    with io.open(temp_result_file, 'w') as f:
+        for result in results_list:
+            f.write(result[0] + " " + str(result[1]) + "\n")
+
+
+"""
+Junta todos los resultados de un embedding y luego los guarda en un mismo archivo de resultados.
+"""
+def saveResults(embedding_name):
+    temp_analogy_results_folder = path.parent / "TempResults/Analogy"
+    temp_result_embedding = temp_analogy_results_folder / embedding_name
+
+    if not temp_result_embedding.exists():
+        return
+
+    test_result_list = os.listdir(temp_result_embedding)
+    results = []
+    for test_file_name in test_result_list:
+        test_result_file = temp_result_embedding / test_file_name
+
+        aux_result = []
+        with io.open(test_result_file, 'r') as f:
             for line in f:
-                pair = line.strip().split()
-                test_pairs.append(pair)
+                aux_result.append(line.strip().split())
 
-        n = len(test_pairs)
+        results.append([test_file_name, aux_result])
 
-        # Realizamos las analogias para cada par de relaciones.
-        results = [[0, 0]]
-        for i in range(n):
-            for j in range(n):
-                if j == i:
-                    continue
+    print(results)
 
-                if i == 0 and DEBUG:
-                    print(test_pairs[i], end=' ')
-                    print(test_pairs[j])
+    analogy_results_folder = path.parent / "Resultados/Analogy"
+    if not analogy_results_folder.exists():
+        os.makedirs(analogy_results_folder)
 
-                p = test_pairs[i]
-                p1 = p[0].split('/')
-                p2 = p[1].split('/')
+    embedding_results = analogy_results_folder / (embedding_name + ".txt")
+    with io.open(embedding_results, 'w') as f:
+        for r in results:
+            f.write(r[0] + "\n")
 
-                q = test_pairs[j]
-                q1 = q[0].split('/')
-                q2 = q[1].split('/')
+            for pair_result in r[1]:
+                f.write(pair_result[0] + " " + str(pair_result[1]) + "\n")
 
-                # Evaluamos la 4-tupla.
-                res = evaluation(p1, p2, q1, q2, embedding, test_file.split("\\")[-1], all_variation, all_scores)
-
-                if i == 0 and DEBUG:
-                    print(res)
-
-                # Resultados de similaridad 3CosMul
-                results[0][0] += res[0][0]
-                results[0][1] += res[0][1]
-
-                # Resultados de similaridad 3CosAdd
+    shutil.rmtree(temp_result_embedding)
 
 
-        print(results[0][0], end='/')
-        print(results[0][1])
-        print("accuracy: ", end='')
-        print(results[0][0] / results[0][1])
+###########################################################################################
+# ANALOGY EVALUATION
+###########################################################################################
+
+#
+def evaluateAnalogy():
+    pass
+
+
+"""
+Obtencion de los pares de palabras (a:b) presentes en un archivo de test
+"""
+def getAnalogyPairs(test_file_path):
+    if not test_file_path.exists():
+        raise Exception("No existe archivo pedido")
+
+    word_pair = []
+    with io.open(test_file_path, 'r') as f:
+        for line in f:
+            pair = line.strip().split()
+            word_pair.append(pair)
+
+    return word_pair
+
+
+#
+def analogyTest(embedding, embedding_name):
+    # Obtencion de path a test
+    test_file_list = getTestFiles()
+    test_file_list = getUntestedFiles(test_file_list, embedding_name)
+
+    for file in test_file_list:
+        print(file)
+
+    for file in test_file_list:
+        pair_list = getAnalogyPairs(file)
+        for pair in pair_list:
+            print(pair)
 
         break
+    pass
 
-    return results
 
+analogyTest("w2", "asdf")
