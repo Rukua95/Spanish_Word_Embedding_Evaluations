@@ -10,6 +10,8 @@ __pycache__/
 /Propuestas/
 /Resultados/
 /Trabajos relacionados/
+/Datasets/_*
+Thread_test.py
 
 # C extensions
 *.so
