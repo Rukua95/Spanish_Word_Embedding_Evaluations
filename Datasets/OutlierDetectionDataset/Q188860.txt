@@ -1,0 +1,11 @@
+jQuery
+WebKit
+OpenGL
+glibc
+SDL
+OpenSSL
+
+depurador
+CorelDRAW
+KTorrent
+iLife

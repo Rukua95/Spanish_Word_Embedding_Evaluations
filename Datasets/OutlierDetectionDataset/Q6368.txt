@@ -1,0 +1,10 @@
+Safari
+Chromium
+Konqueror
+Firefox
+Opera
+
+Emacs
+iWeb
+Apertium
+Gettext

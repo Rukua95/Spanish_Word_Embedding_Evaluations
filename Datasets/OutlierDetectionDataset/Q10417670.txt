@@ -1,0 +1,10 @@
+Trillian
+Kopete
+Irssi
+Pidgin
+mIRC
+ChatZilla
+
+Asterisk
+iPhoto
+Yacc

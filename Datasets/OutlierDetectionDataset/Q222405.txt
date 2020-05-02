@@ -1,0 +1,12 @@
+bayoneta
+pilum
+florete
+hacha
+tomahawk
+machete
+tridente
+
+tonfa
+tamiz
+sello
+Glock

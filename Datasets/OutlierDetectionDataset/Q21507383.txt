@@ -1,0 +1,10 @@
+Winnipeg
+Edmonton
+Quebec
+Victoria
+Regina
+Toronto
+Halifax
+
+Outaouais
+Vantaa

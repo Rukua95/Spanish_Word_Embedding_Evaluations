@@ -2,13 +2,25 @@ import os
 import io
 import shutil
 
+import Constant
+
 import numpy as np
 
 from pathlib import Path
 
-RESTRICTED_FILES = []
-CURRENT_PATH = os.getcwd()
-path = Path(CURRENT_PATH)
+RESTRICTED_FILES = [
+    "_español_E01 [pais - capital].txt",
+    "_español_E02 [pais - idioma].txt",
+    "_español_E04 [nombre - nacionalidad].txt",
+    "_español_E05 [nombre - ocupacion].txt",
+    "_español_L07 [sinonimos - intensidad].txt",
+    "_español_L08 [sinonimos - exacto].txt",
+    "_español_L09 [antonimos - grado].txt",
+    "_español_L10 [antonimos - binario].txt",
+]
+_DATASET = Constant.DATA_FOLDER / "AnalogyDataset"
+_RESULT = Constant.RESULTS_FOLDER / "Analogy"
+_TEMP_RESULT = Constant.TEMP_RESULT_FOLDER / "Analogy"
 
 ###########################################################################################
 # METRICAS
@@ -168,11 +180,11 @@ def getNEuc(embedding, p1,p2, q1, q2):
 
 
 def getPairDist(embedding, p1,p2, q1, q2):
-    pass
+    return 0
 
 
 ###########################################################################################
-# FILES HANDLING
+# MANEJO DE ARCHIVOS
 ###########################################################################################
 
 """
@@ -180,7 +192,7 @@ Obtencion de nombre de los distintos archivos de test de analogias
 :return: lista con path completo de los distintos archivos con pares de palabras para test de analogias
 """
 def getTestFiles():
-    dataset_folder = path.parent / "Datasets/AnalogyDataset"
+    dataset_folder = _DATASET
 
     if not dataset_folder.exists():
         raise Exception('Dataset folder not found')
@@ -205,7 +217,7 @@ Obtencion de path completo hacia los dintintos archivos de test de analogias que
 :return: path completo a los archivos con pares de palabras
 """
 def getUntestedFiles(test_files, embedding_name):
-    temp_result_path = path.parent / "TempResults/Analogy"
+    temp_result_path = _TEMP_RESULT
 
     # Revisar que existe la carpeta de resultados parciales
     if not temp_result_path.exists():
@@ -224,7 +236,7 @@ def getUntestedFiles(test_files, embedding_name):
 
 
 ###########################################################################################
-# SAVE RESULTS
+# GUARDAR RESULTADOS
 ###########################################################################################
 
 """
@@ -235,7 +247,7 @@ Guarda resultados de analogias de forma temporal
 :param results_list: resultados del test sobre distintas metricas, pares (nombre test, resultado)
 """
 def saveTempResults(embedding_name, test_file_name, results_list):
-    temp_analogy_results_folder = path.parent / "TempResults/Analogy"
+    temp_analogy_results_folder = _TEMP_RESULT
     temp_result_embedding = temp_analogy_results_folder / embedding_name
 
     if not temp_result_embedding.exists():
@@ -254,7 +266,7 @@ Junta todos los resultados de un embedding y luego los guarda en un mismo archiv
 :param embedding_name: nombre del embedding testeado
 """
 def saveResults(embedding_name):
-    temp_analogy_results_folder = path.parent / "TempResults/Analogy"
+    temp_analogy_results_folder = _TEMP_RESULT
     temp_result_embedding = temp_analogy_results_folder / embedding_name
 
     # Revisar que existe la carpeta de resultado temporales
@@ -276,7 +288,7 @@ def saveResults(embedding_name):
     for r in results:
         print(r)
 
-    analogy_results_folder = path.parent / "Resultados/Analogy"
+    analogy_results_folder = _RESULT
     if not analogy_results_folder.exists():
         os.makedirs(analogy_results_folder)
 
@@ -292,7 +304,7 @@ def saveResults(embedding_name):
 
 
 ###########################################################################################
-# ANALOGY EVALUATION
+# EVALUACION POR ANALOGIAS
 ###########################################################################################
 
 

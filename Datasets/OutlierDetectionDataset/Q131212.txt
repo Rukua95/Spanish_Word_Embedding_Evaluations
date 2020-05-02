@@ -1,0 +1,12 @@
+sed
+nano
+vi
+Kate
+Emacs
+Gedit
+
+CorelDRAW
+Maxima
+KTorrent
+Gnumeric
+LaTeX

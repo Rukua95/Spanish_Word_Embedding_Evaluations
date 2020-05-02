@@ -1,0 +1,11 @@
+Marsella
+Singapur
+Barcelona
+Reikiavik
+Venecia
+Gibraltar
+Ámsterdam
+
+departamento
+país
+borough

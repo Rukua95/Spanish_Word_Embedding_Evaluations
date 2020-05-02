@@ -1,0 +1,13 @@
+SimCity
+OpenTTD
+2048
+SuperTux
+Freeciv
+NetHack
+
+distribución
+SteamOS
+OTRS
+FreeBSD
+MongoDB
+RRDtool

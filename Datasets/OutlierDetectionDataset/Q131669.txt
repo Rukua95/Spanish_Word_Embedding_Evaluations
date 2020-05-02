@@ -1,0 +1,10 @@
+Ubuntu
+Debian
+Knoppix
+Kubuntu
+Gentoo
+Fedora
+Slackware
+
+distribución
+glibc

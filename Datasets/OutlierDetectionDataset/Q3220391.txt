@@ -1,0 +1,12 @@
+Flickr
+LinkedIn
+Last.fm
+Twitter
+MySpace
+Instagram
+Facebook
+Vkontakte
+
+Asterisk
+depurador
+compilador

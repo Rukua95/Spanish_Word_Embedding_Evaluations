@@ -1,0 +1,9 @@
+Liberec
+Pardubice
+Pilsen
+Olomouc
+Ostrava
+Brno
+
+departamento
+Tarn

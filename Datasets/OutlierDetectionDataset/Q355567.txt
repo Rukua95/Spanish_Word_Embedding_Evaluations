@@ -1,0 +1,10 @@
+caballero
+rey
+sultán
+duque
+samurái
+emperador
+faraón
+
+magnate
+maharajá

@@ -1,0 +1,12 @@
+sed
+vi
+cat
+chdir
+awk
+grep
+mv
+chmod
+
+Netstat
+AVG
+Freehand

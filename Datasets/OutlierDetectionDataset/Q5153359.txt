@@ -1,0 +1,10 @@
+Liberec
+Pardubice
+Pilsen
+Olomouc
+Ostrava
+Brno
+
+Galanta
+Ilava
+Apure

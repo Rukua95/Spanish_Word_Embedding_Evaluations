@@ -1,0 +1,9 @@
+Waikato
+Canterbury
+Otago
+Southland
+Northland
+
+Kaikoura
+Timaru
+Viterbo

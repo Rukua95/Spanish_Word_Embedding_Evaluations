@@ -1,0 +1,6 @@
+Elefant
+Jagdpanther
+Hetzer
+Jagdtiger
+
+Möbelwagen
