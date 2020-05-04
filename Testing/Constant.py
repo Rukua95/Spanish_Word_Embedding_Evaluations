@@ -10,8 +10,6 @@ RESULTS_FOLDER = MAIN_FOLDER / "Resultados"
 TEMP_RESULT_FOLDER = MAIN_FOLDER / "TempResultados"
 
 
-
-
 print(TESTING_FOLDER)
 print(MAIN_FOLDER)
 

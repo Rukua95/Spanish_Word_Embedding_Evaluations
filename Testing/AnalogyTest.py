@@ -18,6 +18,7 @@ RESTRICTED_FILES = [
     "_español_L09 [antonimos - grado].txt",
     "_español_L10 [antonimos - binario].txt",
 ]
+
 _DATASET = Constant.DATA_FOLDER / "AnalogyDataset"
 _RESULT = Constant.RESULTS_FOLDER / "Analogy"
 _TEMP_RESULT = Constant.TEMP_RESULT_FOLDER / "Analogy"
@@ -41,12 +42,8 @@ def getCoseneSimilarCosmul(embedding, p1, p2, q1, q2):
     for a in p1:
         for b in p2:
             for c in q1:
-                res = ''
-                try:
-                    res = embedding.most_similar_cosmul(positive=[b, c], negative=[a])
-                    res = res[0][0]
-                except:
-                    res = ''
+                res = embedding.most_similar_cosmul(positive=[b, c], negative=[a])
+                res = res[0][0]
 
                 if res in q2:
                     return 1
@@ -69,12 +66,8 @@ def getCoseneSimilar(embedding, p1, p2, q1, q2):
     for a in p1:
         for b in p2:
             for c in q1:
-                res = ''
-                try:
-                    res = embedding.most_similar(positive=[b, c], negative=[a])
-                    res = res[0][0]
-                except:
-                    res = ''
+                res = embedding.most_similar(positive=[b, c], negative=[a])
+                res = res[0][0]
 
                 if res in q2:
                     return 1
@@ -99,17 +92,12 @@ def getCos(embedding, p1, p2, q1, q2):
             for c in q1:
                 for d in q2:
                     r = -1.0
+                    a_vec = embedding[a]
+                    b_vec = embedding[b]
+                    c_vec = embedding[c]
+                    d_vec = embedding[d]
 
-                    try:
-                        a_vec = embedding[a]
-                        b_vec = embedding[b]
-                        c_vec = embedding[c]
-                        d_vec = embedding[d]
-
-                        r = np.dot(b_vec - a_vec, d_vec - c_vec) / (np.linalg.norm(b_vec - a_vec)*np.linalg.norm(d_vec - c_vec))
-
-                    except:
-                        r = -1.0
+                    r = np.dot(b_vec - a_vec, d_vec - c_vec) / (np.linalg.norm(b_vec - a_vec)*np.linalg.norm(d_vec - c_vec))
 
                     if r > result:
                         result = r
@@ -132,18 +120,12 @@ def getEuc(embedding, p1,p2, q1, q2):
         for b in p2:
             for c in q1:
                 for d in q2:
-                    r = 0
+                    a_vec = embedding[a]
+                    b_vec = embedding[b]
+                    c_vec = embedding[c]
+                    d_vec = embedding[d]
 
-                    try:
-                        a_vec = embedding[a]
-                        b_vec = embedding[b]
-                        c_vec = embedding[c]
-                        d_vec = embedding[d]
-
-                        r = 1 - (np.linalg.norm((b_vec - a_vec) - (d_vec - c_vec)) / (np.linalg.norm(b_vec - a_vec) + np.linalg.norm(d_vec - c_vec)))
-
-                    except:
-                        r = 0
+                    r = 1 - (np.linalg.norm((b_vec - a_vec) - (d_vec - c_vec)) / (np.linalg.norm(b_vec - a_vec) + np.linalg.norm(d_vec - c_vec)))
 
                     if r > result:
                         result = r
@@ -216,7 +198,8 @@ Obtencion de path completo hacia los dintintos archivos de test de analogias que
 :param embedding_name: nombre del embedding que se va a evaluar
 :return: path completo a los archivos con pares de palabras
 """
-def getUntestedFiles(test_files, embedding_name):
+def getUntestedFiles(embedding_name):
+    test_files = getTestFiles()
     temp_result_path = _TEMP_RESULT
 
     # Revisar que existe la carpeta de resultados parciales
@@ -285,7 +268,9 @@ def saveResults(embedding_name):
 
         results.append([test_file_name, aux_result])
 
+    print(">>> Results")
     for r in results:
+        print("    ", end='')
         print(r)
 
     analogy_results_folder = _RESULT
@@ -324,6 +309,31 @@ def getAnalogyPairs(test_file_path):
     return word_pair
 
 
+def delete_oov(embedding, p1, p2, q1, q2):
+    r1 = []
+    r2 = []
+    t1 = []
+    t2 = []
+
+    for x in p1:
+        if x in embedding:
+            r1.append(x)
+
+    for x in p2:
+        if x in embedding:
+            r2.append(x)
+
+    for x in q1:
+        if x in embedding:
+            t1.append(x)
+
+    for x in q2:
+        if x in embedding:
+            t2.append(x)
+
+    return r1, r2, t1, t2
+
+
 """
 Entrega resultados del test de analogias, utilizando diversas metricas.
 :param embedding: 
@@ -335,10 +345,15 @@ Entrega resultados del test de analogias, utilizando diversas metricas.
 :param all_combination: define si se evaluaran todas las combinaciones posibles de relaciones (3CosAdd, 3CosMul, PairDir)
 """
 def evaluateAnalogy(embedding, test_file_name, p1, p2, q1, q2, all_score, all_combination):
+    # Inicializando variables de resultados
     results = []
 
-    # Similaridad 3CosAdd
+    # Evaluacion con imilaridad 3CosAdd
     sim_cos_add = 0
+
+    p1, p2, q1, q2 = delete_oov(embedding, p1, p2, q1, q2)
+    if len(p1) < 1 or len(p2) < 1 or len(q1) < 1 or len(q2) < 1:
+        return results, True
 
     sim_cos_add += getCoseneSimilar(embedding, p1, p2, q1, q2)
     if all_combination:
@@ -353,84 +368,84 @@ def evaluateAnalogy(embedding, test_file_name, p1, p2, q1, q2, all_score, all_co
 
     if not all_score:
         results = results + (6*[0])
-        return results
+
+    else:
+        # Similaridad 3CosMul
+        sim_cos_mul = 0
+
+        sim_cos_mul += getCoseneSimilarCosmul(embedding, p1, p2, q1, q2)
+        if all_combination:
+            sim_cos_mul += getCoseneSimilarCosmul(embedding, q1, q2, p1, p2)
+
+            # Algunas relaciones pueden no ser biyectivas
+            if not test_file_name in RESTRICTED_FILES:
+                sim_cos_mul += getCoseneSimilarCosmul(embedding, p2, p1, q2, q1)
+                sim_cos_mul += getCoseneSimilarCosmul(embedding, q2, q1, p2, p1)
+
+        results.append(sim_cos_mul)
 
 
-    # Similaridad 3CosMul
-    sim_cos_mul = 0
-
-    sim_cos_mul += getCoseneSimilarCosmul(embedding, p1, p2, q1, q2)
-    if all_combination:
-        sim_cos_mul += getCoseneSimilarCosmul(embedding, q1, q2, p1, p2)
-
-        # Algunas relaciones pueden no ser biyectivas
-        if not test_file_name in RESTRICTED_FILES:
-            sim_cos_mul += getCoseneSimilarCosmul(embedding, p2, p1, q2, q1)
-            sim_cos_mul += getCoseneSimilarCosmul(embedding, q2, q1, p2, p1)
-
-    results.append(sim_cos_mul)
+        # TODO: Similaridad PairDir
+        results.append(0)
 
 
-    # TODO: Similaridad PairDir
-    results.append(0)
+        # Puntaje coseno
+        results.append(getCos(embedding, p1, p2, q1, q2))
+
+        # Puntaje euclidiano
+        results.append(getEuc(embedding, p1, p2, q1, q2))
+
+        # Puntaje n-coseno
+        results.append(getNCos(embedding, p1, p2, q1, q2))
+
+        # Puntaje n-euclidiano
+        results.append(getNEuc(embedding, p1, p2, q1, q2))
+
+    return results, False
 
 
-    # Puntaje coseno
-    results.append(getCos(embedding, p1, p2, q1, q2))
+"""
+Metodo que realiza test por analogias
 
-    # Puntaje euclidiano
-    results.append(getEuc(embedding, p1, p2, q1, q2))
-
-    # Puntaje n-coseno
-    results.append(getNCos(embedding, p1, p2, q1, q2))
-
-    # Puntaje n-euclidiano
-    results.append(getNEuc(embedding, p1, p2, q1, q2))
-
-    return results
-
-
-#
+:param embedding: lista de vectores de palabras
+:param embedding_name: nobre del vector de palabras
+:param all_score: determina si se utilizan todas las metricas disponibles
+:param all_combination: determina si se utlizan todas las posibles combinaciones para una relaciondad,
+                        considerando que hay relaciones que no son biyectivas
+:return: lista con los resultados, individuales de cada test, con las metricas disponibles
+"""
 def analogyTest(embedding, embedding_name, all_score=False, all_combination=False):
-    # Obtencion de path a test
-    test_file_list = getTestFiles()
-    test_file_list = getUntestedFiles(test_file_list, embedding_name)
-
-    for file in test_file_list:
-        print(file.name)
+    # Obtencion de archivos que faltan por testear
+    test_file_list = getUntestedFiles(embedding_name)
 
     # Revisamos todos los archivos para realizar test
     for file in test_file_list:
-        print("Testing: ", end='')
+        print(">>> Testing : ", end='')
         print(file.name)
         pair_list = getAnalogyPairs(file)
 
-        #for pair in pair_list:
-        #    print(pair)
-
-        # Inicializamos variables para guardar metricas, calcular accuracy de similaridad y puntaje definido por Che
+        # Inicializamos variables para guardar metricas obtenidas para el archivo de test
         total_test_result = []
         similarity_total = [0, 0, 0]
         che_metric = [0, 0, 0, 0]
 
         count_relations = 0
         count_multiply = 1
+
+        # En caso de evaluar todas las combinaciones, diferenciamos los test que tienen relaciones no biyectivas
         if all_combination:
             if not file.name in RESTRICTED_FILES:
                 count_multiply = 4
             else:
                 count_multiply = 2
 
-        # Generamos todas las 4-tuplas posibles a partir de todos los pares presentes en el archivo file
+        # Evaluamos todas las 4-tuplas posibles a partir de todos los pares presentes en el archivo file
         for i in range(len(pair_list)):
             for j in range(len(pair_list)):
                 if i == j:
                     continue
 
-                # Contar la cantidad de relaciones que se pueden hacer con todas las tuplas posibles
-                count_relations += 1
-
-                # Generamos las tuplas p1:p2 como q1:q2
+                # Generamos las 4-tuplas (p1, p2, q1, q2), donde "p1 es a p2 como q1 es aq2"
                 p = pair_list[i]
                 q = pair_list[j]
 
@@ -447,15 +462,20 @@ def analogyTest(embedding, embedding_name, all_score=False, all_combination=Fals
                 """
 
                 # Obtencion de resultados a partir de las metricas disponibles
-                result_tuple = evaluateAnalogy(embedding, file.name, p1, p2, q1, q2, all_score, all_combination)
+                result_tuple, omited_relation = evaluateAnalogy(embedding, file.name, p1, p2, q1, q2, all_score, all_combination)
+                if omited_relation:
+                    continue
+
+                # Contar la cantidad de relaciones que se pueden hacer con todas las tuplas posibles
+                count_relations += 1
 
                 # Separamos los resultados:
-                # Similaridad
+                # -> Similaridad
                 similarity_total[0] += result_tuple[0]
                 similarity_total[1] += result_tuple[1]
                 similarity_total[2] += result_tuple[2]
 
-                # Puntajes definido por Che
+                # -> Puntajes definido por Che
                 che_metric[0] += result_tuple[3]
                 che_metric[1] += result_tuple[4]
                 che_metric[2] += result_tuple[5]
@@ -463,15 +483,15 @@ def analogyTest(embedding, embedding_name, all_score=False, all_combination=Fals
 
         # Calculamos los resultados totales del test
         # Similaridad
-        total_test_result.append(["3CosAdd", similarity_total[0] * 1.0 / (1.0 * count_relations * count_multiply)])
-        total_test_result.append(["3CosMul", similarity_total[1] * 1.0 / (1.0 * count_relations * count_multiply)])
-        total_test_result.append(["PairDir", similarity_total[2] * 1.0 / (1.0 * count_relations * count_multiply)])
+        total_test_result.append(["3CosAdd", similarity_total[0] * 1.0 / (1.0 * count_relations * count_multiply) if count_relations > 0 else "Nan"])
+        total_test_result.append(["3CosMul", similarity_total[1] * 1.0 / (1.0 * count_relations * count_multiply) if count_relations > 0 else "Nan"])
+        total_test_result.append(["PairDir", similarity_total[2] * 1.0 / (1.0 * count_relations * count_multiply) if count_relations > 0 else "Nan"])
 
         # Puntajes definido por Che
-        total_test_result.append(["cos", che_metric[0] * 1.0 / (1.0 * count_relations)])
-        total_test_result.append(["euc", che_metric[1] * 1.0 / (1.0 * count_relations)])
-        total_test_result.append(["ncos", che_metric[2] * 1.0 / (1.0 * count_relations)])
-        total_test_result.append(["neuc", che_metric[3] * 1.0 / (1.0 * count_relations)])
+        total_test_result.append(["cos", che_metric[0] * 1.0 / (1.0 * count_relations) if count_relations > 0 else "Nan"])
+        total_test_result.append(["euc", che_metric[1] * 1.0 / (1.0 * count_relations) if count_relations > 0 else "Nan"])
+        total_test_result.append(["ncos", che_metric[2] * 1.0 / (1.0 * count_relations) if count_relations > 0 else "Nan"])
+        total_test_result.append(["neuc", che_metric[3] * 1.0 / (1.0 * count_relations) if count_relations > 0 else "Nan"])
 
         # Guardamos los resultados de forma temporal
         saveTempResults(embedding_name, file.name, total_test_result)

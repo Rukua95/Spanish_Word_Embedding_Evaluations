@@ -210,6 +210,20 @@ def getWords(file_name):
     return main_set, outlier_set
 
 
+def getTests(cant=-1):
+    file_list = getTestFiles()
+    test_list = []
+    count = 0
+
+    for file in file_list:
+        test_list.append(getWords(file))
+        count += 1
+        if cant <= count and cant > 0:
+            break
+
+    return test_list
+
+
 ###########################################################################################
 # GUARDAR RESULTADOS
 ###########################################################################################
@@ -255,19 +269,12 @@ Realizacion de outlier detection test
 :param existe_ovv: determina si se consideran palabras fuera del vocabulario
 """
 def outlierDetectionTest(embedding, embedding_name, phrase=False, exist_oov=True):
-    # Obtencion de conjuntos
-    file_test_list = getTestFiles()
-    pair_test_list = []
-
-    count = 0
-    for file in file_test_list:
-        if count > 10:
-            break
-        count += 1
-        pair_test_list.append(getWords(file))
+    # Obtencion de conjuntos, principal y outlier
+    test_list = getTests()
 
     # TODO: adicion de datos (%oov outlier, %oov main set, %grupos omitidos)
-    score = getScores(embedding, pair_test_list, phrase, exist_oov)
+    score = getScores(embedding, test_list, phrase, exist_oov)
     results = [["accuraccy", score[0]], ["OPP", score[1]]]
 
     saveResults(embedding_name, results, phrase, exist_oov)
+
