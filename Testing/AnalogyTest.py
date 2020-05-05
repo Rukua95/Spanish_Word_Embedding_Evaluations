@@ -296,14 +296,18 @@ def saveResults(embedding_name):
 """
 Obtencion de los pares de palabras (a:b) presentes en un archivo de test
 """
-def getAnalogyPairs(test_file_path):
+def getAnalogyPairs(test_file_path, lower):
     if not test_file_path.exists():
         raise Exception("No existe archivo pedido")
 
     word_pair = []
     with io.open(test_file_path, 'r') as f:
         for line in f:
-            pair = line.strip().split()
+            line = line.strip()
+            if lower:
+                line = line.lower()
+
+            pair = line.split()
             word_pair.append(pair)
 
     return word_pair
@@ -414,7 +418,7 @@ Metodo que realiza test por analogias
                         considerando que hay relaciones que no son biyectivas
 :return: lista con los resultados, individuales de cada test, con las metricas disponibles
 """
-def analogyTest(embedding, embedding_name, all_score=False, all_combination=False):
+def analogyTest(embedding, embedding_name, all_score=False, all_combination=False, lower=True):
     # Obtencion de archivos que faltan por testear
     test_file_list = getUntestedFiles(embedding_name)
 
@@ -422,7 +426,7 @@ def analogyTest(embedding, embedding_name, all_score=False, all_combination=Fals
     for file in test_file_list:
         print(">>> Testing : ", end='')
         print(file.name)
-        pair_list = getAnalogyPairs(file)
+        pair_list = getAnalogyPairs(file, lower)
 
         # Inicializamos variables para guardar metricas obtenidas para el archivo de test
         total_test_result = []

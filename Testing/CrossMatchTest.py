@@ -6,11 +6,11 @@ import Constant
 _RESULT = Constant.RESULTS_FOLDER / "CrossMatch"
 
 
-def get_test_set(embedding):
+def getTestSet(embedding):
     pass
 
 
-def compare_test_set(sub_embedding1, sub_embedding2):
+def compareTestSet(sub_embedding1, sub_embedding2):
     pass
 
 def saveResult(embedding1_name, embedding2_name, results):
@@ -21,5 +21,5 @@ def saveResult(embedding1_name, embedding2_name, results):
     with io.open(result_file, 'w', encoding='utf-8') as f:
         f.write(str(results) + "\n")
 
-def cross_match_test(embeddin1, embedding1_name, embedding2, embedding2_name, sample_size=1000):
+def crossMatchTest(embedding1, embedding1_name, embedding2, embedding2_name, sample_size=1000):
     pass
