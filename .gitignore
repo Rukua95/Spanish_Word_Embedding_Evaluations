@@ -4,13 +4,15 @@ __pycache__/
 *$py.class
 
 # Files to ignore
+/Datasets/_*
 /Embeddings/
 /Env/
 /Otros/
 /Propuestas/
 /Resultados/
+/TempResultados/
 /Trabajos relacionados/
-/Datasets/_*
+
 Thread_test.py
 
 # C extensions
