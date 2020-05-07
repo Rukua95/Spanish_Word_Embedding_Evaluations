@@ -21,8 +21,8 @@ def getGraph(matrix):
                 continue
 
             G.add_edge(i, j)
-            G[i][j]["weight"] = -matrix[i][j]
-            G[j][i]["weight"] = -matrix[j][i]
+            G[i][j]["weight"] = matrix[i][j]
+            G[j][i]["weight"] = matrix[j][i]
 
     print(G.nodes)
     print(G.edges)
@@ -33,7 +33,7 @@ def distance(embedding1, embedding2, word1, word2):
     w_vector1 = embedding1.word_vec(word1, True)
     w_vector2 = embedding2.word_vec(word2, True)
 
-    return w_vector1.dot(w_vector2)
+    return w_vector1.dot(w_vector2) - 1
 
 
 def getTestSet(embedding, sample_size):
