@@ -15,11 +15,15 @@ _TEMP_RESULT = Constant.TEMP_RESULT_FOLDER / "Similarity"
 # METRICA
 ###########################################################################################
 
+
 """
 Obtencion de correlacion spearman rho a partir de pares de palabras y puntaje de similaridad
 
 :param embedding: lista de vectores de palabras
 :param word_pairs: lista de pares de palabras con su puntaje de similaridad
+
+:return: lista con correlacion sperman-rho, cantidad de pares evaluados, cantidad de pares no evaluados 
+         y cantidad de palabras no encontradas en el vocabulario
 """
 def get_spearman_rho(embedding, word_pairs):
     not_found_pairs = 0
@@ -55,14 +59,18 @@ def get_spearman_rho(embedding, word_pairs):
     print("    ", end = '')
     print(not_found_list)
 
-    return spearmanr(gold, pred).correlation, len(gold), not_found_pairs
+    return spearmanr(gold, pred).correlation, len(gold), not_found_pairs, not_found_words
+
 
 ###########################################################################################
 # MANEJO DE ARCHIVOS
 ###########################################################################################
 
+
 """
-Obtencion de archivos de test
+Obtencion de archivos de test desde carpeta de datasets
+
+:return: lista de nombres de dataset
 """
 def getTestFiles():
     if not _DATASET.exists():
@@ -76,9 +84,11 @@ Obtencion de pares de palabras en algun archivo
 
 :param file: nombre de archivo test
 :param lower: determina si se cambian las mayusculas por minusculas
+
+:return: lista con pares de palabras y su puntaje de similaridad
 """
 def getWordPairs(file, lower=True):
-    print("     > Opening file: " + file)
+    print(">>> Opening file " + file)
 
     word_pairs = []
     total = 0
@@ -105,6 +115,7 @@ def getWordPairs(file, lower=True):
 # GUARDAR RESULTADOS
 ###########################################################################################
 
+
 """
 Guarda resultados del test de similaridad
 
@@ -112,26 +123,29 @@ Guarda resultados del test de similaridad
 :param score: lista de resultados
 """
 def saveResults(embedding_name, score):
-    result_path = _RESULT / (embedding_name + ".txt")
-    print(">>> Saving in " + result_path.stem)
-
     if not _RESULT.exists():
         os.makedirs(_RESULT)
 
+    result_path = _RESULT / (embedding_name + ".txt")
+    print(">>> Saving results in " + result_path.stem)
+
     with io.open(result_path, 'w', encoding='utf-8') as f:
-        for pair in score:
-            test_file_name = pair[0].split('.')[0]
-            f.write(test_file_name + ": " + str(pair[1]) + "\n")
+        for tuple in score:
+            test_file_name = tuple[0].split('.')[0]
+            f.write(test_file_name + ": " + str(tuple[1]))
+            f.write(", not_found_pairs: " + str(tuple[2]))
+            f.write(", not_found_words: " + str(tuple[3]) + "\n")
 
 
 ###########################################################################################
 # EVALUACION POR SIMILARITY
 ###########################################################################################
 
+
 """
 Realizacion de test de similaridad
 
-:return: coeficiente de correlacion spearman rho
+:return: coeficiente de correlacion spearman rho, cantidad de palabras no encontradas y cantidad de pares no evaluados
 """
 def similarityTest(embedding, embedding_name, lower=True):
     test_file_list = getTestFiles()
@@ -145,16 +159,16 @@ def similarityTest(embedding, embedding_name, lower=True):
         word_pairs = getWordPairs(test_file)
         all_word_pairs = all_word_pairs + word_pairs
 
-        coeff, found, not_found_pairs = get_spearman_rho(embedding, word_pairs)
-        scores.append([test_file, coeff])
+        coeff, found, not_found_pairs, not_found_words = get_spearman_rho(embedding, word_pairs)
+        scores.append([test_file, coeff, not_found_pairs, not_found_words])
 
         print("     > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
 
     # Test en conjunto
     print(">>> Empezando test en conjunto")
 
-    coeff, found, not_found_pairs = get_spearman_rho(embedding, all_word_pairs)
-    scores.append(["all_data", coeff])
+    coeff, found, not_found_pairs, not_found_words = get_spearman_rho(embedding, all_word_pairs)
+    scores.append(["all_data", coeff, not_found_pairs, not_found_words])
 
     print("     > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
 
