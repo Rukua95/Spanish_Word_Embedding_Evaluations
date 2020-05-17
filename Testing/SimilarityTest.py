@@ -63,7 +63,7 @@ def get_spearman_rho(embedding, word_pairs):
 
 
 ###########################################################################################
-# MANEJO DE ARCHIVOS
+# MANEJO DE ARCHIVOS Y DATASET
 ###########################################################################################
 
 
@@ -88,7 +88,7 @@ Obtencion de pares de palabras en algun archivo
 :return: lista con pares de palabras y su puntaje de similaridad
 """
 def getWordPairs(file, lower=True):
-    print(">>> Opening file " + file)
+    print(">>> Abriendo archivo " + file)
 
     word_pairs = []
     total = 0
@@ -127,7 +127,7 @@ def saveResults(embedding_name, score):
         os.makedirs(_RESULT)
 
     result_path = _RESULT / (embedding_name + ".txt")
-    print(">>> Saving results in " + result_path.stem)
+    print(">>> Guardando resultados en " + result_path)
 
     with io.open(result_path, 'w', encoding='utf-8') as f:
         for tuple in score:
@@ -152,6 +152,7 @@ def similarityTest(embedding, embedding_name, lower=True):
     all_word_pairs = []
     scores = []
 
+
     # Test individuales
     print(">>> Test individuales")
     for test_file in test_file_list:
@@ -162,7 +163,7 @@ def similarityTest(embedding, embedding_name, lower=True):
         coeff, found, not_found_pairs, not_found_words = get_spearman_rho(embedding, word_pairs)
         scores.append([test_file, coeff, not_found_pairs, not_found_words])
 
-        print("     > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
+        print("    > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
 
     # Test en conjunto
     print(">>> Empezando test en conjunto")
@@ -170,7 +171,7 @@ def similarityTest(embedding, embedding_name, lower=True):
     coeff, found, not_found_pairs, not_found_words = get_spearman_rho(embedding, all_word_pairs)
     scores.append(["all_data", coeff, not_found_pairs, not_found_words])
 
-    print("     > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
+    print("    > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
 
     print(">>> Resultados")
     for pair in scores:

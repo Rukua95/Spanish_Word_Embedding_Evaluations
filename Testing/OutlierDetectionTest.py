@@ -17,22 +17,20 @@ _TEMP_RESULT = Constant.TEMP_RESULT_FOLDER / "OutlierDetection"
 # PUNTUACION
 ###########################################################################################
 
+
 """
 Retorna Pseudo-Inverted Compactness Score (Camacho-Colados) para todos los w en el conjunto C = W + {w}
 
 :param embedding: lista de vectores de palabras
 :param W: lista de palabras
 :param w: palabra a la cual calcula puntaje respecto a conjunto W
-:param phrase: determina si se evaluan frases
 
 :return: puntaje de palabra w respecto a conjunto W
 """
-def getPseudoInvertedCompactnessScore(embedding, W, w, phrase):
+def getPseudoInvertedCompactnessScore(embedding, W, w):
     sum = 0
     k = 0
     for word in W:
-        # TODO: inclusion de frase durante la validacion
-
         if not word in embedding:
             continue
 
@@ -45,7 +43,13 @@ def getPseudoInvertedCompactnessScore(embedding, W, w, phrase):
 
 
 """
-Elimina palabras dentro de conjunto principal y conjunto outlier
+Elimina palabras dentro de conjunto principal y conjunto outlier, que no aparezcan en el vocabulario
+
+:param embedding: lista de vectores de palabras
+:param main_set: lista de palabras del conjunto principal
+:param outlier_set: lista de palabras del conjunto outlier
+
+:return: conjunto principal y outlier actualizado, ademas de la cantidad de palabras omitidas
 """
 def omitOOVWord(embedding, main_set, outlier_set):
     res_main_set = []
@@ -74,18 +78,17 @@ Obtencion de puntaje del test para un solo archivo/conjunto
 :param embedding: lista de vectores de palabras
 :param main_set: conjunto principal de palabras
 :param outlier_set: conjunto de palabras outliers
-:param phrase: determina si se evaluan frases
 :param exist_oov: determina si se solo palabras en la interseccion de vocabularios
 
 :return: valor de OP y OD para cada palabra en outlier_set, respecto a main_set
 """
-def getFileScores(embedding, main_set, outlier_set, phrase, exist_oov):
+def getFileScores(embedding, main_set, outlier_set, exist_oov):
     OP = []
     OD = []
     for outlier in outlier_set:
         # Obtencion de puntaje para outlier (nos importa su posicion respecto al resto de puntajes)
         W = main_set
-        p = getPseudoInvertedCompactnessScore(embedding, W, outlier, phrase)
+        p = getPseudoInvertedCompactnessScore(embedding, W, outlier)
         pos = len(main_set)
 
         W_outlier = W
@@ -94,7 +97,7 @@ def getFileScores(embedding, main_set, outlier_set, phrase, exist_oov):
             C = W_outlier[0: i] + W_outlier[i+1:] + [outlier]
             w = W_outlier[i]
 
-            p_i = getPseudoInvertedCompactnessScore(embedding, C, w, phrase)
+            p_i = getPseudoInvertedCompactnessScore(embedding, C, w)
             if p_i < p:
                 pos -= 1
 
@@ -109,10 +112,11 @@ Obtencion de accuracy y OPP
 
 :param embedding: lista de vectores de palabras
 :param test_sets: lista de pares de conjuntos [main_set, outlier_set]
+:param exist_oov: determina si pueden existir palabras fuera del vocabulario
 
-:return: accuracy y OPP
+:return: accuracy y OPP, e informacion relacionada a palabras oov
 """
-def getScores(embedding, test_sets, phrase, exist_oov):
+def getScores(embedding, test_sets, exist_oov):
     # Suma de valores op y od
     cant_test = 0
     sum_op = 0.0
@@ -129,6 +133,9 @@ def getScores(embedding, test_sets, phrase, exist_oov):
     for test in test_sets:
         count += 1
         print(">>> Test " + str(count) + " of " + str(len(test_sets)))
+
+
+        # Conjunto principal y outlier
         main_set, outlier_set = test
         total_main += len(main_set)
         total_outlier += len(outlier_set)
@@ -137,22 +144,28 @@ def getScores(embedding, test_sets, phrase, exist_oov):
         print(main_set, end='\n    ')
         print(outlier_set)
 
+
         # Determinar cuales palabras de cada set se encuentran en el vocabulario
         if exist_oov:
             main_set, outlier_set, main_omited, outlier_omited = omitOOVWord(embedding, main_set, outlier_set)
             total_main_omited += main_omited
             total_outlier_omited += outlier_omited
 
+            total_main += len(main_set)
+            total_outlier += len(outlier_set)
+
             print(">>> In-vocabulary set:", end='\n    ')
             print(main_set, end='\n    ')
             print(outlier_set)
 
+
+        # Omitir test si no hay palabras suficientes en el conjunto principal o en conjunto outlier
         if len(main_set) < 2 or len(outlier_set) < 1:
             total_omited_sets += 1
             print("Test set invalido, conjunto principal muy pequeño o conjunto outlier vacio\n")
             continue
 
-        OP_list, OD_list = getFileScores(embedding, main_set, outlier_set, phrase, exist_oov)
+        OP_list, OD_list = getFileScores(embedding, main_set, outlier_set, exist_oov)
 
         print("OP and OD list:")
         print(OP_list)
@@ -189,14 +202,14 @@ def getScores(embedding, test_sets, phrase, exist_oov):
 
 
 ###########################################################################################
-# MANEJO DE ARCHIVOS
+# MANEJO DE ARCHIVOS Y DATASET
 ###########################################################################################
+
 
 """
 Obtencion de la lista de archivos test
 
-:return: nombre de archivos con test de outlier detection
-:type: list
+:return: lista con nombre de archivos con test de outlier detection
 """
 def getTestFiles():
     if not _DATASET.exists():
@@ -209,9 +222,9 @@ def getTestFiles():
 Obtencion de las palabras desde el archivo de test, palabras del conjunto y conunto outlier
 
 :param file_name: nombre de archivo con test
+:param lower: determina si se utilizan solo minusculas en el test
 
 :return: par de conjuntos, conjunto principal y conjunto outlier
-:type: list
 """
 def getWords(file_name, lower):
     main_set = []
@@ -233,16 +246,20 @@ def getWords(file_name, lower):
     return main_set, outlier_set
 
 
-def getTests(lower, cant=-1):
+"""
+Metodo para la obtencion de todos los conjuntos de palabras que se utilizaran como test
+
+:param lower: determina si se utilizan solo minusculas en el test
+
+:return: lista de pares de conjuntos, conjunto principal y outlier, de cada test
+"""
+def getTests(lower):
     file_list = getTestFiles()
     test_list = []
     count = 0
 
     for file in file_list:
         test_list.append(getWords(file, lower))
-        count += 1
-        if cant <= count and cant > 0:
-            break
 
     return test_list
 
@@ -257,13 +274,10 @@ Guardado de resultados del test por outlier detection
 :param embedding_name: nombre de embedding evaluado
 :param results: lista de los resultados (accuraccy, OPP) y datos (% oov outlier, % ovv main set, % grupos omitidos)
                 de un embedding, la lista se compone de pares [nombre_resultado, valor_resultado]
-:param phrase: determina si se utilizan frases en set de pruebas
 :param exist_oov: determina si se consideran palabras fuera del vocabulario
 """
-def saveResults(embedding_name, results, phrase, exist_oov):
+def saveResults(embedding_name, results, exist_oov):
     extension = ""
-    if phrase:
-        extension += "_phrase"
 
     if not exist_oov:
         extension += "_vocabIntersect"
@@ -283,20 +297,23 @@ def saveResults(embedding_name, results, phrase, exist_oov):
 # EVALUACION POR OUTLIER DETECTION
 ###########################################################################################
 
+
 """
-Realizacion de outlier detection test
+Realizacion de test de outlier detection
 
 :param embedding: lista de vectores de palabras
 :param embedding_name: nombre del embedding a evaluar
-:param phrase: determina si se utilizan frases en set de pruebas
 :param existe_ovv: determina si se consideran palabras fuera del vocabulario
+
+:return: lista con resultados de accuraccy y OPP, ademas de info sobre palabras oov
 """
-def outlierDetectionTest(embedding, embedding_name, phrase=False, exist_oov=True, lower=True):
+def outlierDetectionTest(embedding, embedding_name, exist_oov=True, lower=True):
     # Obtencion de conjuntos, principal y outlier
     test_list = getTests(lower)
 
-    # TODO: adicion de datos (%oov outlier, %oov main set, %grupos omitidos)
-    results = getScores(embedding, test_list, phrase, exist_oov)
+
+    # Obtencion y limpieza de resultados
+    results = getScores(embedding, test_list, exist_oov)
     results = [
         ["accuraccy", results[0]],
         ["OPP", results[1]],
@@ -308,5 +325,8 @@ def outlierDetectionTest(embedding, embedding_name, phrase=False, exist_oov=True
     print(">>> Resultados:\n    ", end='')
     print(results, end='\n\n')
 
-    saveResults(embedding_name, results, phrase, exist_oov)
+
+    # Guardado de resultados
+    saveResults(embedding_name, results, exist_oov)
+    return results
 

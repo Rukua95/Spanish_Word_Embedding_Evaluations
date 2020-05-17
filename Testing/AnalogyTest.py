@@ -8,11 +8,13 @@ import numpy as np
 
 from pathlib import Path
 
+# Archivos que no se pueden usar para relizar test en ambas direcciones de la relacion.
 RESTRICTED_FILES = [
     "_español_E01 [pais - capital].txt",
     "_español_E02 [pais - idioma].txt",
     "_español_E04 [nombre - nacionalidad].txt",
     "_español_E05 [nombre - ocupacion].txt",
+    "_español_E11 [ciudad_Chile - provincia_Chile].txt"
     "_español_L07 [sinonimos - intensidad].txt",
     "_español_L08 [sinonimos - exacto].txt",
     "_español_L09 [antonimos - grado].txt",
@@ -27,6 +29,7 @@ _TEMP_RESULT = Constant.TEMP_RESULT_FOLDER / "Analogy"
 # METRICAS
 ###########################################################################################
 
+
 """
 Retorna 1 o 0 si se logra determinar la palabra d, dentro de relacion a:b = c:d
 utilizando 3CosMul como funcion de similaridad
@@ -36,6 +39,7 @@ utilizando 3CosMul como funcion de similaridad
 :param p2: dentro de la relacion, palabras que pueden ser b
 :param q1: dentro de la relacion, palabras que pueden ser c
 :param q2: dentro de la relacion, palabras que pueden ser d
+
 :return: 1 o 0, dependiendo si se deduce alguna palabra d 
 """
 def getCoseneSimilarCosmul(embedding, p1, p2, q1, q2):
@@ -60,6 +64,7 @@ utilizando 3CosAdd como funcion de similaridad
 :param p2: dentro de la relacion, palabras que pueden ser b
 :param q1: dentro de la relacion, palabras que pueden ser c
 :param q2: dentro de la relacion, palabras que pueden ser d
+
 :return: 1 o 0, dependiendo si se deduce alguna palabra d 
 """
 def getCoseneSimilar(embedding, p1, p2, q1, q2):
@@ -83,7 +88,8 @@ Retorna maximo puntaje para la relacion a:b = c:d utilizando distancia coseno co
 :param p2: dentro de la relacion, palabras que pueden ser b
 :param q1: dentro de la relacion, palabras que pueden ser c
 :param q2: dentro de la relacion, palabras que pueden ser d
-:return: 
+
+:return: valor de distancia conseno entre vectores (b-a) y (d-c)
 """
 def getCos(embedding, p1, p2, q1, q2):
     result = -1.0
@@ -113,6 +119,8 @@ Retorna maximo puntaje para la relacion a:b = c:d utilizando distancia euclidian
 :param p2: dentro de la relacion, palabras que pueden ser b
 :param q1: dentro de la relacion, palabras que pueden ser c
 :param q2: dentro de la relacion, palabras que pueden ser d
+
+:return: valor de distancia euclidian entre vectores (b-a) y (d-c)
 """
 def getEuc(embedding, p1,p2, q1, q2):
     result = -1.0
@@ -132,6 +140,7 @@ def getEuc(embedding, p1,p2, q1, q2):
 
     return result
 
+
 """
 Retorna maximo puntaje para la relacion a:b = c:d utilizando distancia coseno como funcion de puntaje, en este
 caso, los vectores son unitarios
@@ -141,10 +150,12 @@ caso, los vectores son unitarios
 :param p2: dentro de la relacion, palabras que pueden ser b
 :param q1: dentro de la relacion, palabras que pueden ser c
 :param q2: dentro de la relacion, palabras que pueden ser d
-:return:
+
+:return: valor de distancia conseno entre vectores (b-a) y (d-c), con vectores normalizados
 """
 def getNCos(embedding, p1,p2, q1, q2):
     return -1.0
+
 
 """
 Retorna maximo puntaje para la relacion a:b = c:d utilizando distancia euclidiana como funcion de puntaje, en este
@@ -155,37 +166,39 @@ caso, los vectores son unitarios
 :param p2: dentro de la relacion, palabras que pueden ser b
 :param q1: dentro de la relacion, palabras que pueden ser c
 :param q2: dentro de la relacion, palabras que pueden ser d
-:return:
+
+:return: valor de distancia euclidian entre vectores (b-a) y (d-c), con vectores normalizados
 """
 def getNEuc(embedding, p1,p2, q1, q2):
     return 0
 
 
-def getPairDist(embedding, p1,p2, q1, q2):
-    return 0
+#def getPairDist(embedding, p1,p2, q1, q2):
+#    return 0
 
 
 ###########################################################################################
-# MANEJO DE ARCHIVOS
+# MANEJO DE ARCHIVOS Y DATASET
 ###########################################################################################
+
 
 """
 Obtencion de nombre de los distintos archivos de test de analogias
+
 :return: lista con path completo de los distintos archivos con pares de palabras para test de analogias
 """
 def getTestFiles():
     dataset_folder = _DATASET
 
     if not dataset_folder.exists():
-        raise Exception('Dataset folder not found')
+        raise Exception("No se logro encontrar carpeta con test")
 
     test_files = []
     sub_dataset_folder = os.listdir(dataset_folder)
     for folder in sub_dataset_folder:
-        # Hay distintos subcarpetas para los test de analogias.
+        # Hay distintos subcarpetas para los test de analogias, segun el tipo de relacion.
         # Inflexion, Derivacion, Enciclopedia, Lexicografico.
         sub_folder = dataset_folder / folder
-
         test_files = test_files + list(map(lambda f: sub_folder / f, os.listdir(sub_folder)))
 
     return test_files
@@ -196,6 +209,7 @@ Obtencion de path completo hacia los dintintos archivos de test de analogias que
 
 :param test_files: nombre de los archivos que contienen los pares de palabras
 :param embedding_name: nombre del embedding que se va a evaluar
+
 :return: path completo a los archivos con pares de palabras
 """
 def getUntestedFiles(embedding_name):
@@ -218,9 +232,71 @@ def getUntestedFiles(embedding_name):
     return test_files_list
 
 
+"""
+Obtencion de los pares de palabras (a:b) presentes en un archivo de test
+
+:param test_file_path: path hacia archivo con pares de palabras
+:param lower: determina si las palabras solo se consideran en minusculas
+
+:return: lista de pares de palabras 
+"""
+def getAnalogyPairs(test_file_path, lower):
+    if not test_file_path.exists():
+        raise Exception("No existe archivo pedido")
+
+    word_pair = []
+    with io.open(test_file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if lower:
+                line = line.lower()
+
+            pair = line.split()
+            word_pair.append(pair)
+
+    return word_pair
+
+
+'''
+Eliminacion de palabras oov
+
+:param embedding: lista con vectores de palabras
+:param p1: lista de palabras que representa el elemento a en analogia
+:param p2: lista de palabras que representa el elemento b en analogia
+:param q1: lista de palabras que representa el elemento c en analogia
+:param q2: lista de palabras que representa el elemento d en analogia
+
+:return: tupla con lista de palabras, cada lista representa un elemento en la analogia
+'''
+def delete_oov(embedding, p1, p2, q1, q2):
+    r1 = []
+    r2 = []
+    t1 = []
+    t2 = []
+
+    for x in p1:
+        if x in embedding:
+            r1.append(x)
+
+    for x in p2:
+        if x in embedding:
+            r2.append(x)
+
+    for x in q1:
+        if x in embedding:
+            t1.append(x)
+
+    for x in q2:
+        if x in embedding:
+            t2.append(x)
+
+    return r1, r2, t1, t2
+
+
 ###########################################################################################
 # GUARDAR RESULTADOS
 ###########################################################################################
+
 
 """
 Guarda resultados de analogias de forma temporal
@@ -247,15 +323,20 @@ def saveTempResults(embedding_name, test_file_name, results_list):
 Junta todos los resultados de un embedding y luego los guarda en un mismo archivo de resultados.
 
 :param embedding_name: nombre del embedding testeado
+
+:return: resultado de cada uno de los archivos de test, ademas de informacion relacionada a la cantidad de analogias no evaluadas
 """
 def saveResults(embedding_name):
     temp_analogy_results_folder = _TEMP_RESULT
     temp_result_embedding = temp_analogy_results_folder / embedding_name
 
+
     # Revisar que existe la carpeta de resultado temporales
     if not temp_result_embedding.exists():
-        raise Exception("Falta carpeta con resultados temporales")
+        raise Exception("Falta carpeta con resultados temporales, no se pueden obtener resultados")
 
+
+    # Extraccion de resultados temporales
     test_result_list = os.listdir(temp_result_embedding)
     results = []
     for test_file_name in test_result_list:
@@ -268,15 +349,19 @@ def saveResults(embedding_name):
 
         results.append([test_file_name, aux_result])
 
-    print(">>> Results")
+    print(">>> Resultados")
     for r in results:
         print("    ", end='')
         print(r)
 
+
+    # Revisar existencia de capeta donde dejar resultados
     analogy_results_folder = _RESULT
     if not analogy_results_folder.exists():
         os.makedirs(analogy_results_folder)
 
+
+    # Escribir resultados
     embedding_results = analogy_results_folder / (embedding_name + ".txt")
     with io.open(embedding_results, 'w') as f:
         for r in results:
@@ -286,6 +371,7 @@ def saveResults(embedding_name):
                 f.write(pair_result[0] + " " + str(pair_result[1]) + "\n")
 
     shutil.rmtree(temp_result_embedding)
+    return results
 
 
 ###########################################################################################
@@ -294,70 +380,30 @@ def saveResults(embedding_name):
 
 
 """
-Obtencion de los pares de palabras (a:b) presentes en un archivo de test
-"""
-def getAnalogyPairs(test_file_path, lower):
-    if not test_file_path.exists():
-        raise Exception("No existe archivo pedido")
-
-    word_pair = []
-    with io.open(test_file_path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if lower:
-                line = line.lower()
-
-            pair = line.split()
-            word_pair.append(pair)
-
-    return word_pair
-
-
-def delete_oov(embedding, p1, p2, q1, q2):
-    r1 = []
-    r2 = []
-    t1 = []
-    t2 = []
-
-    for x in p1:
-        if x in embedding:
-            r1.append(x)
-
-    for x in p2:
-        if x in embedding:
-            r2.append(x)
-
-    for x in q1:
-        if x in embedding:
-            t1.append(x)
-
-    for x in q2:
-        if x in embedding:
-            t2.append(x)
-
-    return r1, r2, t1, t2
-
-
-"""
 Entrega resultados del test de analogias, utilizando diversas metricas.
+
 :param embedding: 
-:param p1:
-:param p2:
-:param q1:
-:param q2:
+:param p1: lista de palabras que representa el elemento a en analogia
+:param p2: lista de palabras que representa el elemento b en analogia
+:param q1: lista de palabras que representa el elemento c en analogia
+:param q2: lista de palabras que representa el elemento d en analogia
 :param all_score: define si se realizan todas las metricas o solo similaridad coseno
 :param all_combination: define si se evaluaran todas las combinaciones posibles de relaciones (3CosAdd, 3CosMul, PairDir)
+
+:return: par de elementos, el primer elemento es una lista con las distintas metricas con las cuales se evalua la analogia,
+         el segundo elemento determina si la analogia no fue evaluada, producto de palabras oov
 """
 def evaluateAnalogy(embedding, test_file_name, p1, p2, q1, q2, all_score, all_combination):
     # Inicializando variables de resultados
     results = []
 
-    # Evaluacion con imilaridad 3CosAdd
-    sim_cos_add = 0
-
+    # Eliminamos palabras fuera del vocabulario
     p1, p2, q1, q2 = delete_oov(embedding, p1, p2, q1, q2)
     if len(p1) < 1 or len(p2) < 1 or len(q1) < 1 or len(q2) < 1:
         return results, True
+
+    # Evaluacion con imilaridad 3CosAdd
+    sim_cos_add = 0
 
     sim_cos_add += getCoseneSimilar(embedding, p1, p2, q1, q2)
     if all_combination:
@@ -388,10 +434,7 @@ def evaluateAnalogy(embedding, test_file_name, p1, p2, q1, q2, all_score, all_co
 
         results.append(sim_cos_mul)
 
-
-        # TODO: Similaridad PairDir
         results.append(0)
-
 
         # Puntaje coseno
         results.append(getCos(embedding, p1, p2, q1, q2))
@@ -409,13 +452,14 @@ def evaluateAnalogy(embedding, test_file_name, p1, p2, q1, q2, all_score, all_co
 
 
 """
-Metodo que realiza test por analogias
+Realizacion de test de analogias
 
 :param embedding: lista de vectores de palabras
 :param embedding_name: nobre del vector de palabras
 :param all_score: determina si se utilizan todas las metricas disponibles
 :param all_combination: determina si se utlizan todas las posibles combinaciones para una relaciondad,
-                        considerando que hay relaciones que no son biyectivas
+         considerando que hay relaciones que no son biyectivas
+                        
 :return: lista con los resultados, individuales de cada test, con las metricas disponibles
 """
 def analogyTest(embedding, embedding_name, all_score=False, all_combination=False, lower=True):
@@ -424,9 +468,10 @@ def analogyTest(embedding, embedding_name, all_score=False, all_combination=Fals
 
     # Revisamos todos los archivos para realizar test
     for file in test_file_list:
-        print(">>> Testing : ", end='')
+        print(">>> Testing: ", end='')
         print(file.name)
         pair_list = getAnalogyPairs(file, lower)
+
 
         # Inicializamos variables para guardar metricas obtenidas para el archivo de test
         total_test_result = []
@@ -436,6 +481,9 @@ def analogyTest(embedding, embedding_name, all_score=False, all_combination=Fals
         count_relations = 0
         count_multiply = 1
 
+        omited_count = 0
+
+
         # En caso de evaluar todas las combinaciones, diferenciamos los test que tienen relaciones no biyectivas
         if all_combination:
             if not file.name in RESTRICTED_FILES:
@@ -443,11 +491,13 @@ def analogyTest(embedding, embedding_name, all_score=False, all_combination=Fals
             else:
                 count_multiply = 2
 
+
         # Evaluamos todas las 4-tuplas posibles a partir de todos los pares presentes en el archivo file
         for i in range(len(pair_list)):
             for j in range(len(pair_list)):
                 if i == j:
                     continue
+
 
                 # Generamos las 4-tuplas (p1, p2, q1, q2), donde "p1 es a p2 como q1 es aq2"
                 p = pair_list[i]
@@ -465,15 +515,18 @@ def analogyTest(embedding, embedding_name, all_score=False, all_combination=Fals
                 print(q2)
                 """
 
+
                 # Obtencion de resultados a partir de las metricas disponibles
                 result_tuple, omited_relation = evaluateAnalogy(embedding, file.name, p1, p2, q1, q2, all_score, all_combination)
                 if omited_relation:
+                    omited_count += 1
                     continue
+
 
                 # Contar la cantidad de relaciones que se pueden hacer con todas las tuplas posibles
                 count_relations += 1
 
-                # Separamos los resultados:
+                # Separamos los resultados por:
                 # -> Similaridad
                 similarity_total[0] += result_tuple[0]
                 similarity_total[1] += result_tuple[1]
@@ -484,6 +537,7 @@ def analogyTest(embedding, embedding_name, all_score=False, all_combination=Fals
                 che_metric[1] += result_tuple[4]
                 che_metric[2] += result_tuple[5]
                 che_metric[3] += result_tuple[6]
+
 
         # Calculamos los resultados totales del test
         # Similaridad
@@ -497,8 +551,12 @@ def analogyTest(embedding, embedding_name, all_score=False, all_combination=Fals
         total_test_result.append(["ncos", che_metric[2] * 1.0 / (1.0 * count_relations) if count_relations > 0 else "Nan"])
         total_test_result.append(["neuc", che_metric[3] * 1.0 / (1.0 * count_relations) if count_relations > 0 else "Nan"])
 
+        # Cantidad de pares de relaciones omitidas
+        total_test_result.append(["omited", omited_count])
+        total_test_result.append(["%omited", omited_count / (omited_count + count_relations)])
+
         # Guardamos los resultados de forma temporal
         saveTempResults(embedding_name, file.name, total_test_result)
 
-    saveResults(embedding_name)
+    return saveResults(embedding_name)
 
