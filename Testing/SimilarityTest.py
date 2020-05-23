@@ -55,9 +55,9 @@ def get_spearman_rho(embedding, word_pairs):
         gold.append(similarity)
         pred.append(score)
 
-    print(">>> Not found words:" + str(not_found_words))
-    print("    ", end = '')
-    print(not_found_list)
+    print("    Not found words:" + str(not_found_words))
+    for word in not_found_list:
+        print("    " + word)
 
     return spearmanr(gold, pred).correlation, len(gold), not_found_pairs, not_found_words
 
@@ -127,7 +127,7 @@ def saveResults(embedding_name, score):
         os.makedirs(_RESULT)
 
     result_path = _RESULT / (embedding_name + ".txt")
-    print(">>> Guardando resultados en " + result_path)
+    print(">>> Guardando resultados en:\n    " + str(result_path))
 
     with io.open(result_path, 'w', encoding='utf-8') as f:
         for tuple in score:
@@ -156,7 +156,7 @@ def similarityTest(embedding, embedding_name, lower=True):
     # Test individuales
     print(">>> Test individuales")
     for test_file in test_file_list:
-        print(">>> Archivo test: " + test_file)
+        print("    Archivo test: " + test_file)
         word_pairs = getWordPairs(test_file)
         all_word_pairs = all_word_pairs + word_pairs
 
@@ -173,13 +173,13 @@ def similarityTest(embedding, embedding_name, lower=True):
 
     print("    > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
 
+    # Guardando resultados
+    saveResults(embedding_name, scores)
+
     print(">>> Resultados")
     for pair in scores:
         print("    " + pair[0] + ": " + str(pair[1]))
 
     print("\n")
-
-    # Guardando resultados
-    saveResults(embedding_name, scores)
 
     return scores

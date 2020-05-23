@@ -354,6 +354,8 @@ def saveResults(embedding_name):
         print("    ", end='')
         print(r)
 
+    print('')
+
 
     # Revisar existencia de capeta donde dejar resultados
     analogy_results_folder = _RESULT
@@ -371,6 +373,7 @@ def saveResults(embedding_name):
                 f.write(pair_result[0] + " " + str(pair_result[1]) + "\n")
 
     shutil.rmtree(temp_result_embedding)
+
     return results
 
 
