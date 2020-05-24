@@ -73,11 +73,13 @@ class GlobalTest:
         result = AnalogyTest.analogyTest(word_vector, word_vector_name, all_score, all_combination, self._lower)
         return result
 
+
     def outlierDetectionTest(self, word_vector, word_vector_name):
         exist_oov = self._intrinsec_test_settings["outlierdetection"]["exist_oov"]
 
         result = OutlierDetectionTest.outlierDetectionTest(word_vector, word_vector_name, exist_oov, self._lower)
         return result
+
 
     def crossMatchTest(self, word_vector1, word_vector1_name, word_vector2, word_vector2_name):
         # TODO: obtener valores desde setting
@@ -90,7 +92,10 @@ class GlobalTest:
                                                sample_size, sub_sample_size, repetition, F_constant)
         return result
 
+
     # Evaluaciones extrinseca
+
+
 
 
 

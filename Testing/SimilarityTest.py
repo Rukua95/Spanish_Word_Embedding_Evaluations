@@ -177,8 +177,9 @@ def similarityTest(embedding, embedding_name, lower=True):
     saveResults(embedding_name, scores)
 
     print(">>> Resultados")
-    for pair in scores:
-        print("    " + pair[0] + ": " + str(pair[1]))
+    for tuple in scores:
+        print("    " + tuple[0] + ": ", end='')
+        print(tuple[1:])
 
     print("\n")
 
