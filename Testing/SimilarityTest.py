@@ -87,7 +87,7 @@ Obtencion de pares de palabras en algun archivo
 
 :return: lista con pares de palabras y su puntaje de similaridad
 """
-def getWordPairs(file, lower=True):
+def getWordPairs(file, lower):
     print(">>> Abriendo archivo " + file)
 
     word_pairs = []
@@ -131,10 +131,8 @@ def saveResults(embedding_name, score):
 
     with io.open(result_path, 'w', encoding='utf-8') as f:
         for tuple in score:
-            test_file_name = tuple[0].split('.')[0]
-            f.write(test_file_name + ": " + str(tuple[1]))
-            f.write(", not_found_pairs: " + str(tuple[2]))
-            f.write(", not_found_words: " + str(tuple[3]) + "\n")
+            for key in tuple.keys():
+                f.write(key + ": " + tuple[key] + "\n")
 
 
 ###########################################################################################
@@ -157,11 +155,15 @@ def similarityTest(embedding, embedding_name, lower=True):
     print(">>> Test individuales")
     for test_file in test_file_list:
         print("    Archivo test: " + test_file)
-        word_pairs = getWordPairs(test_file)
+        word_pairs = getWordPairs(test_file, lower)
         all_word_pairs = all_word_pairs + word_pairs
 
         coeff, found, not_found_pairs, not_found_words = get_spearman_rho(embedding, word_pairs)
-        scores.append([test_file, coeff, not_found_pairs, not_found_words])
+        scores.append({
+            test_file: coeff,
+            "not_found_pairs": not_found_pairs,
+            "not_found_words": not_found_words,
+        })
 
         print("    > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
 
@@ -169,7 +171,11 @@ def similarityTest(embedding, embedding_name, lower=True):
     print(">>> Empezando test en conjunto")
 
     coeff, found, not_found_pairs, not_found_words = get_spearman_rho(embedding, all_word_pairs)
-    scores.append(["all_data", coeff, not_found_pairs, not_found_words])
+    scores.append({
+        "all_data": coeff,
+        "not_found_pairs": not_found_pairs,
+        "not_found_words": not_found_words
+    })
 
     print("    > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
 

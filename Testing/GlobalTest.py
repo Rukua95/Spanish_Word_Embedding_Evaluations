@@ -25,12 +25,11 @@ def get_wordvector(file, cant=None):
 ###################################################################################
 
 class GlobalTest:
-    _lower = True
     _embeddings_name = os.listdir(EMBEDDING_FOLDER)
     _extra_embeddings = []
     _intrinsec_test_settings = {
+        "lower": True,
         "similarity": {
-
         },
         "analogy": {
             "all_score": False,
@@ -40,16 +39,16 @@ class GlobalTest:
             "exist_oov": True
         },
         "crossmatch": {
-            "repetition": 1,
+            "enable": True,
+            "repetition": 500,
             "sample_size": 100000,
             "sub_sample_size": 200,
         },
     }
     _results = []
 
-    def __init__(self, extra_embeddings=[], lower=True):
+    def __init__(self, extra_embeddings=[]):
         self._extra_embeddings = extra_embeddings
-        self._lower = lower
 
         print("Embeddings defaults a evaluar:")
         for name in self._embeddings_name:
@@ -102,11 +101,9 @@ class GlobalTest:
     # Evaluacion global
     # TODO: hacer algo con resultados obtenidos
     def globalTest(self, number_of_vectors=None):
-        # TODO: dar opcion de hacer test intrinsecos
         print("Iniciando test intrinsecos")
         all_embeddings = self._embeddings_name + self._extra_embeddings
 
-        # TODO: agregar caso de embeddings especiales por uso de mayusculas
         for i in range(len(all_embeddings)):
             name = self._embeddings_name[i]
             print(">>> Testing " + name + "\n")
@@ -131,30 +128,27 @@ class GlobalTest:
             print("\nIniciando test de outlier detection")
             result = self.outlierDetectionTest(word_vector, word_vector_name)
 
-            # TODO: agregar opcion de realizacion en settings
-            print("\nIniciando test de cross-match")
-            for j in range(len(all_embeddings)):
-                if j <= i:
-                    continue
+            if self._intrinsec_test_settings["crossmatch"]["enable"]:
+                print("\nIniciando test de cross-match")
+                for j in range(len(all_embeddings)):
+                    if j <= i:
+                        continue
 
-                name2 = self._embeddings_name[j]
-                print(">>> Comparando con " + name2 + "\n")
+                    name2 = self._embeddings_name[j]
+                    print(">>> Comparando con " + name2 + "\n")
 
-                print(">>> Cargando vectores...", end='')
-                word_vector_path2 = EMBEDDING_FOLDER / name2
-                word_vector_name2 = name2
-                if i >= len(self._embeddings_name):
-                    word_vector_path2 = name2
-                    word_vector_name2 = ("extra_embedding_" + str(len(self._embeddings_name) - i))
+                    print(">>> Cargando vectores...", end='')
+                    word_vector_path2 = EMBEDDING_FOLDER / name2
+                    word_vector_name2 = name2
+                    if i >= len(self._embeddings_name):
+                        word_vector_path2 = name2
+                        word_vector_name2 = ("extra_embedding_" + str(len(self._embeddings_name) - i))
 
-                word_vector2 = KeyedVectors.load_word2vec_format(word_vector_path2, limit=number_of_vectors)
+                    word_vector2 = KeyedVectors.load_word2vec_format(word_vector_path2, limit=number_of_vectors)
 
-                print("listo")
+                    print("listo")
 
-                result = self.crossMatchTest(word_vector, word_vector_name, word_vector2, word_vector_name2)
-
-
-        # TODO: dar opcion de hacer test extrinsecos
+                    result = self.crossMatchTest(word_vector, word_vector_name, word_vector2, word_vector_name2)
 
 
     def changeSettings(self, test_name, test_setting, new_value):
