@@ -5,11 +5,15 @@ import numpy as np
 
 import random
 
+###########################################################################################
+# Clasificacion a partir de vectores promedio
+###########################################################################################
+
 
 def MeanVectorEvaluation(word_vector, word_vector_name):
     # Obtencion de datos ordenados, ademas de sus respectivos vectores promedios.
-    gob_concept_vectors, gob_args_vectors, open_args_vectors, mode_vectors = ConstitucionUtil.getSortedDataset(word_vector)
-
+    gob_concept_vectors, gob_args_vectors, open_args_vectors, mode_vectors = ConstitucionUtil.getSortedDataset(
+        word_vector)
 
     # Task A
     print("\nTask A")
@@ -27,13 +31,8 @@ def MeanVectorEvaluation(word_vector, word_vector_name):
 
 
 def meanVectorEvalTaskA(gob_args_vectors):
-    """
-    Por concepto en cada topico, eligo el 80% como train y 20% como test, y unas cuantas repeticiones.
-    """
-
     total = 0
     total_evaluado = 0
-    top1_correct = 0
     args_by_concept_by_topic = {}
 
     # Organizar argumentos por topico y por concepto
@@ -45,9 +44,10 @@ def meanVectorEvalTaskA(gob_args_vectors):
 
         total += len(gob_args_vectors[topic])
 
+        # Organizamos vectores segun concept
         for tupla in gob_args_vectors[topic]:
-            concept = gob_args_vectors[topic]["concept"]["content"]
-            arg_vector = gob_args_vectors[topic]["arg"]["vector"]
+            concept = tupla["concept"]
+            arg_vector = tupla["arg"]["vector"]
 
             # Omitimos vectores vacios
             if arg_vector.size == 0:
@@ -61,27 +61,34 @@ def meanVectorEvalTaskA(gob_args_vectors):
             args_by_concept_by_topic[topic][concept].append(arg_vector)
 
         for concept in args_by_concept_by_topic[topic].keys():
-            print(" > " + concept + ", cantidad: " + str(len(args_by_concept_by_topic[topic][concept])))
+            print(" > " + concept)
 
+    print("total de argumentos: " + str(total))
+    print("total a evaluar: " + str(total_evaluado))
 
-    # Pruebas
-    repetitions = 1
-    final_result = {}
+    # Experimentos
+    repetitions = 5
+    final_result_top1 = {}
+    final_result_top5 = {}
     for h in range(repetitions):
-        print("Experimento " + str(h+1))
+        print("Experimento " + str(h + 1))
+
+        # Separamos en train y test set
         for topic in args_by_concept_by_topic.keys():
-            print(" > " + topic)
+            print(" > Topico " + topic)
 
             test_set = {}
             model = []
             concept_list = []
 
-            # Separamos train y test set, y entrenamos el modelo
+            # Separamos set y organizamos segun concepto
             for concept in args_by_concept_by_topic[topic].keys():
                 total_args = len(args_by_concept_by_topic[topic][concept])
-                print("    > " + concept + ", cantidad: " + str(total_args))
+                print("    > " + concept + ", cantidad de args: " + str(total_args))
+                print("      train_set size = " + str(int(total_args * 0.8)) + ", test_set size = " + str(
+                    total_args - int(total_args * 0.8)))
 
-                idx = random.sample(range(total_args), int(total_args*0.8))
+                idx = random.sample(range(total_args), int(total_args * 0.8))
 
                 train_set = []
 
@@ -89,17 +96,22 @@ def meanVectorEvalTaskA(gob_args_vectors):
                     if i in idx:
                         train_set.append(args_by_concept_by_topic[topic][concept][i])
                     else:
+                        # Test set esta separado por concepto
                         if concept not in test_set.keys():
                             test_set[concept] = []
 
                         test_set[concept].append(args_by_concept_by_topic[topic][concept][i])
 
+                # Entrenamos el modelo
                 train_set = np.vstack(train_set)
                 model.append(np.mean(train_set, axis=0))
+
                 concept_list.append(concept)
 
             # Realizamos test
             total_test_size = 0
+            top1_correct = 0
+            top5_correct = 0
             for concept in test_set.keys():
                 total_test_size += len(test_set[concept])
 
@@ -109,24 +121,37 @@ def meanVectorEvalTaskA(gob_args_vectors):
 
                     index = np.argsort(results)
                     index_most_similar = index[-1]
-                    # print(mode_mean_vectors[index_most_similar][:5])
-                    # print(modes[index_most_similar])
+                    index_most_similar_top5 = index[-5:]
 
+                    # Calcular si la prediccion es correcta
                     if concept == concept_list[index_most_similar]:
                         top1_correct += 1
 
+                    # Calcular si la prediccion es correcta en los primeros 5
+                    for id in index_most_similar_top5:
+                        if concept == concept_list[id]:
+                            top5_correct += 1
+                            break
+
             print(" > topic " + topic + " results")
-            print(top1_correct/total_test_size)
+            print(top1_correct / total_test_size)
+            print(top5_correct / total_test_size)
 
-            if topic not in final_result.keys():
-                final_result[topic] = 0
+            if topic not in final_result_top1.keys():
+                final_result_top1[topic] = 0
+                final_result_top5[topic] = 0
 
-            final_result[topic] += top1_correct/total_test_size
+            final_result_top1[topic] += top1_correct / total_test_size
+            final_result_top5[topic] += top5_correct / total_test_size
 
-    for key in final_result.keys():
-        final_result[key] = final_result[key]/repetitions
+    for topic in final_result_top1.keys():
+        final_result_top1[topic] = final_result_top1[topic] / repetitions
+        final_result_top5[topic] = final_result_top5[topic] / repetitions
 
-    return final_result
+    print("Final results: ", end='')
+    print([final_result_top1, final_result_top5])
+
+    return [final_result_top1, final_result_top5]
 
 
 def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
@@ -151,9 +176,6 @@ def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
 
         # Guardamos vectores y strings de conceptos
         for concept in gob_concept_vectors[topic].keys():
-            print(" > " + concept + ": ", end='')
-            print(gob_concept_vectors[topic][concept].shape)
-
             if gob_concept_vectors[topic][concept].size == 0:
                 continue
 
@@ -173,19 +195,9 @@ def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
         for concept in gob_concept_list_by_topics[topic]:
             print(" > T: " + topic + " C: " + concept)
 
-    for topic in gob_concept_vectors_list_by_topics.keys():
-        print(topic)
-        print(gob_concept_vectors_list_by_topics[topic])
-
     ######################################################################################
 
-    total = 0
-    total_evaluado = 0
-    top5_correct = 0
-    top1_correct = 0
-
     acuraccy_results = []
-
 
     # Cantidad de argumentos por topico
     total_open_args = 0
@@ -195,10 +207,14 @@ def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
 
     print("total: " + str(total_open_args) + "\n")
 
-
     # Obtencion accuracy (top1 y top5) de similaridad.
     for topic in open_args_vectors.keys():
-        print(topic + ") cantidad " + str(len(open_args_vectors[topic])))
+        print("Topico " + topic + ": cantidad de vectores " + str(len(open_args_vectors[topic])))
+
+        total = 0
+        total_evaluado = 0
+        top5_correct = 0
+        top1_correct = 0
 
         for tupla in open_args_vectors[topic]:
             equivalent_concept = tupla["concept"]
@@ -210,7 +226,6 @@ def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
                 continue
 
             total += 1
-
 
             # Revisar que concepto abierto entregado no es nulo
             if open_concept.lower() == 'null':
@@ -230,11 +245,6 @@ def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
             index_most_similar = index[-1]
             index_most_similar_top5 = index[-5:]
 
-            # print("###############")
-            # print("top1: " + gob_concept_list_by_topics[topic][index_most_similar])
-            # for id in index_most_similar_top5:
-            #    print("top5: " + gob_concept_list_by_topics[topic][id])
-
             # Calcular si se predijo correctamente
             if equivalent_concept == gob_concept_list_by_topics[topic][index_most_similar]:
                 top1_correct += 1
@@ -249,46 +259,41 @@ def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
         top1_acuraccy = top1_correct / total_evaluado
         top5_acuraccy = top5_correct / total_evaluado
 
-        print(str(top1_correct) + " " + str(top5_correct))
-        print(str(top1_acuraccy) + " " + str(top5_acuraccy))
+        print("Resultados: " + str(top1_acuraccy) + " " + str(top5_acuraccy))
 
         acuraccy_results.append([top1_acuraccy, top5_acuraccy, total_evaluado, total])
 
-        total = 0
-        total_evaluado = 0
-        top5_correct = 0
-        top1_correct = 0
-
-
     total_final = 0
     for r in acuraccy_results:
-        print(r)
         total_final += r[-1]
-        print("% omitidos: " + str(1 - r[-2] / r[-1]))
-    print("total final: " + str(total_final))
 
-    #saveResults(acuraccy_results)
+        print("Datos: ", end='')
+        print(r)
+        print("% omitidos: " + str(1 - r[-2] / r[-1]))
+
+    print("total final: " + str(total_final))
 
     return acuraccy_results
 
 
-
 def meanVectorEvalTaskC(gob_args_vectors, open_args_vectors):
-    total = 0
+    total_argumentos = 0
     total_evaluado = 0
 
     # Separamos los argumentos segun modo de argumentacion
     arguments_by_mode = {}
     for key in gob_args_vectors.keys():
-        total += len(gob_args_vectors[key] + open_args_vectors[key])
+        total_argumentos += len(gob_args_vectors[key] + open_args_vectors[key])
 
-        for tupla in gob_args_vectors[key] + open_args_vectors[key]:
+        for tupla in (gob_args_vectors[key] + open_args_vectors[key]):
             arg_vec = tupla["arg"]["vector"]
             mode = tupla["mode"]
 
+            # Eliminamos argumentos que no tengan vectores
             if arg_vec.size == 0:
                 continue
 
+            # Eliminamos argumentos que sean indefinido/indeterminables
             if mode == "undefined" or mode == "blank":
                 continue
 
@@ -297,27 +302,26 @@ def meanVectorEvalTaskC(gob_args_vectors, open_args_vectors):
             if mode not in arguments_by_mode.keys():
                 arguments_by_mode[mode] = []
 
+            # Guardamos vector de argumento segun modo argumentativo
             arguments_by_mode[mode].append(arg_vec)
 
-    print("total de argumentos: " + str(total))
-    print("total a evaluar: " + str(total_evaluado))
+    print("Total de argumentos: " + str(total_argumentos))
+    print("Total a evaluar: " + str(total_evaluado))
 
     for mode in arguments_by_mode.keys():
         print(mode + ", cantidad de argumentos: " + str(len(arguments_by_mode[mode])))
 
-
     # Realizamos los experimentos
     final_accuracy = 0
-    repetitions = 100
+    repetitions = 5
     for h in range(repetitions):
-        print("Experiment " + str(h+1))
+        print("Experiment " + str(h + 1))
         test_set = {}
         mode_mean_vectors = []
         modes = []
-        top1_correct = 0
 
+        # Usamos train set para obtener vector promedio para cada modo de argumentacion
         for key in arguments_by_mode.keys():
-            #print("mode: " + key)
             modes.append(key)
 
             if key not in test_set.keys():
@@ -334,6 +338,7 @@ def meanVectorEvalTaskC(gob_args_vectors, open_args_vectors):
                     train_set.append(arguments_by_mode[key][i])
 
                 else:
+                    # Test set esta separado por modo de argumentacion
                     test_set[key].append(arguments_by_mode[key][i])
 
             train_set = np.vstack(train_set)
@@ -341,36 +346,37 @@ def meanVectorEvalTaskC(gob_args_vectors, open_args_vectors):
             # Entrenamos el modelo, calculamos vector promedio para cada modo de argumentacion
             mode_mean_vectors.append(np.mean(train_set, axis=0))
 
-            #print(np.mean(train_set, axis=0)[:5])
-
         mode_mean_vectors = np.vstack(mode_mean_vectors)
 
-        #print("Tamaño de test set:")
-        #for key in test_set.keys():
-        #    print(" > " + key + ": " + str(len(test_set[key])))
-
         # Calculamos el accuracy
+        top1_correct = 0
         total_test_size = 0
         for key in test_set.keys():
-            #print("Evaluating arguments of mode " + key)
             total_test_size += len(test_set[key])
+
             for arg_vec in test_set[key]:
                 results = cosine_similarity(mode_mean_vectors, np.array([arg_vec]))
                 results = results.reshape(1, results.size)[0]
 
                 index = np.argsort(results)
                 index_most_similar = index[-1]
-                #print(mode_mean_vectors[index_most_similar][:5])
-                #print(modes[index_most_similar])
+                # print(mode_mean_vectors[index_most_similar][:5])
+                # print(modes[index_most_similar])
 
                 if key == modes[index_most_similar]:
                     top1_correct += 1
 
-        print("top1_correct: " + str(top1_correct))
-        print("result: " + str(top1_correct/total_test_size))
-        final_accuracy += top1_correct/total_test_size
+        print("result: " + str(top1_correct / total_test_size))
+        final_accuracy += top1_correct / total_test_size
 
     # Calculamos el accuracy promedio
-    final_accuracy = final_accuracy/repetitions
+    final_accuracy = final_accuracy / repetitions
+    print("Mean result: " + str(final_accuracy))
 
     return final_accuracy
+
+###########################################################################################
+# Clasificacion a partir de redes neuronales
+###########################################################################################
+
+
