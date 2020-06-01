@@ -27,6 +27,8 @@ def MeanVectorEvaluation(word_vector, word_vector_name):
     print("\nTask C")
     result_taskC = meanVectorEvalTaskC(gob_args_vectors, open_args_vectors)
 
+    # TODO: save results
+
     return [result_taskA, result_taskB, result_taskC]
 
 
@@ -68,6 +70,8 @@ def meanVectorEvalTaskA(gob_args_vectors):
 
     # Experimentos
     repetitions = 5
+    total_args_by_topic = {}
+    accuracy_result = {}
     final_result_top1 = {}
     final_result_top5 = {}
     for h in range(repetitions):
@@ -80,10 +84,14 @@ def meanVectorEvalTaskA(gob_args_vectors):
             test_set = {}
             model = []
             concept_list = []
+            if topic not in total_args_by_topic.keys():
+                total_args_by_topic[topic] = 0
 
             # Separamos set y organizamos segun concepto
             for concept in args_by_concept_by_topic[topic].keys():
                 total_args = len(args_by_concept_by_topic[topic][concept])
+                total_args_by_topic[topic] += total_args
+
                 print("    > " + concept + ", cantidad de args: " + str(total_args))
                 print("      train_set size = " + str(int(total_args * 0.8)) + ", test_set size = " + str(
                     total_args - int(total_args * 0.8)))
@@ -140,18 +148,18 @@ def meanVectorEvalTaskA(gob_args_vectors):
             if topic not in final_result_top1.keys():
                 final_result_top1[topic] = 0
                 final_result_top5[topic] = 0
+                accuracy_result[topic] = []
 
             final_result_top1[topic] += top1_correct / total_test_size
             final_result_top5[topic] += top5_correct / total_test_size
 
     for topic in final_result_top1.keys():
-        final_result_top1[topic] = final_result_top1[topic] / repetitions
-        final_result_top5[topic] = final_result_top5[topic] / repetitions
+        accuracy_result[topic] = [final_result_top1[topic] / repetitions, final_result_top5[topic] / repetitions, total_args_by_topic[topic]]
 
     print("Final results: ", end='')
     print([final_result_top1, final_result_top5])
 
-    return [final_result_top1, final_result_top5]
+    return accuracy_result
 
 
 def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
@@ -197,7 +205,7 @@ def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
 
     ######################################################################################
 
-    acuraccy_results = []
+    acuraccy_results = {}
 
     # Cantidad de argumentos por topico
     total_open_args = 0
@@ -261,7 +269,10 @@ def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
 
         print("Resultados: " + str(top1_acuraccy) + " " + str(top5_acuraccy))
 
-        acuraccy_results.append([top1_acuraccy, top5_acuraccy, total_evaluado, total])
+        if topic not in acuraccy_results.keys():
+            acuraccy_results[topic] = []
+
+        acuraccy_results[topic] = [top1_acuraccy, top5_acuraccy, total_evaluado, total]
 
     total_final = 0
     for r in acuraccy_results:

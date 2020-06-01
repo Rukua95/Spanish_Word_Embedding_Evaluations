@@ -1,5 +1,7 @@
 import SimilarityTest, AnalogyTest, OutlierDetectionTest, CrossMatchTest, ConstitucionUtil
 
+import EvalConstitucion
+
 import os
 import io
 import json
@@ -93,13 +95,14 @@ class GlobalTest:
 
 
     # Evaluaciones extrinseca
+    def constitutionClassificationTask(self, word_vector, word_vector_name):
+        mean_vector_results = EvalConstitucion.MeanVectorEvaluation(word_vector, word_vector_name)
+        #RRN_results = EvalConstitucion.RNNEvaluation(word_vector, word_vector_name)
 
-
-
+        return mean_vector_results
 
 
     # Evaluacion global
-    # TODO: hacer algo con resultados obtenidos
     def globalTest(self, number_of_vectors=None):
         print("Iniciando test intrinsecos")
         all_embeddings = self._embeddings_name + self._extra_embeddings
@@ -120,16 +123,18 @@ class GlobalTest:
             print("listo")
 
             print("\nIniciando test de similaridad")
-            result = self.similarityTest(word_vector, word_vector_name)
+            similarityResult = self.similarityTest(word_vector, word_vector_name)
 
             print("\nIniciando test de analogias")
-            result = self.analogyTest(word_vector, word_vector_name)
+            analogyResult = self.analogyTest(word_vector, word_vector_name)
 
             print("\nIniciando test de outlier detection")
-            result = self.outlierDetectionTest(word_vector, word_vector_name)
+            outlierDetectionResult = self.outlierDetectionTest(word_vector, word_vector_name)
 
             if self._intrinsec_test_settings["crossmatch"]["enable"]:
                 print("\nIniciando test de cross-match")
+
+                crossMatchResult = []
                 for j in range(len(all_embeddings)):
                     if j <= i:
                         continue
@@ -148,7 +153,10 @@ class GlobalTest:
 
                     print("listo")
 
-                    result = self.crossMatchTest(word_vector, word_vector_name, word_vector2, word_vector_name2)
+                    crossMatchResult.append(self.crossMatchTest(word_vector, word_vector_name, word_vector2, word_vector_name2))
+
+            print("Iniciando test extrinseco")
+            constitucionResult = self.constitutionClassificationTask(word_vector, word_vector_name)
 
 
     def changeSettings(self, test_name, test_setting, new_value):
