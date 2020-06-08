@@ -1,4 +1,4 @@
-julio astronave 0.17
+﻿julio astronave 0.17
 coche bicicleta 2.67
 poliedro actor 0.0
 falla sistema 0.83
@@ -26,7 +26,7 @@ pesticida peste 1.17
 policía político 2.5
 neuropsicología parapsicología 2.25
 batería energía 2.42
-spider-man calle 0.17
+spiderman calle 0.17
 península isla 2.92
 ecuador ecuador 1.58
 gráfica gráfico 3.5
@@ -355,7 +355,7 @@ hamedan roma 2.17
 paraguas radiador 0.17
 honor estima 2.33
 insignia dignidad 1.17
-kfc mcdonald's 3.17
+kfc mcdonalds 3.17
 joystick radar 0.67
 medalla zapatillas 0.08
 ley piscina 0.0

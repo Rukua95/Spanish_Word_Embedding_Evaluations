@@ -1,0 +1,10 @@
+Hz
+kN
+ C
+m 
+J
+kW
+voltio
+km 
+
+ppi

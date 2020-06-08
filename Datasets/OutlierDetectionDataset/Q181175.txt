@@ -1,7 +1,0 @@
-tiempo
-presión
-Masa
-capacitancia
-resistencia
-
-extensión

@@ -1,0 +1,11 @@
+barriles
+galones
+m 
+pinta
+L
+cc
+bushel
+arqueo
+
+Oersted
+magnitud

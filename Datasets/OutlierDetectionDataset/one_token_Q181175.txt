@@ -1,0 +1,8 @@
+tiempo
+presión
+Masa
+capacitancia
+resistencia
+
+La 
+extensión

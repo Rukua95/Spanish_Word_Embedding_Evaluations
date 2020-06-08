@@ -1,0 +1,12 @@
+ edu
+ cat
+ asia
+ mil
+ gov
+ aero
+ mobi
+ xxx
+
+ ci
+ uk
+ com

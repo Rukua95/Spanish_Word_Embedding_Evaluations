@@ -1,8 +1,0 @@
-R
-GNOME
-GIMP
-GCC
-Bash
-
-SteamOS
-ransomware

@@ -1,0 +1,9 @@
+GIMP
+Paint
+Krita
+IrfanView
+
+LightWave
+Kdenlive
+glibc
+SDL

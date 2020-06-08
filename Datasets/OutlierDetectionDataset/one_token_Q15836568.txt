@@ -1,0 +1,12 @@
+FTP
+TCP
+UDP
+HTTP
+leecher
+IP
+IRC
+DNS
+
+CAN
+JPEG 
+ISO 

@@ -1,0 +1,11 @@
+Flickr
+LinkedIn
+Twitter
+MySpace
+Instagram
+Facebook
+Vkontakte
+
+Asterisk
+depurador
+compilador

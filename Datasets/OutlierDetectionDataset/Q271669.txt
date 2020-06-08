@@ -1,5 +1,0 @@
-cantera
-
-SVCD
-VCD
-contrapposto
