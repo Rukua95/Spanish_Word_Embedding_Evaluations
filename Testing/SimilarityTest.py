@@ -1,5 +1,7 @@
 from gensim.models.keyedvectors import KeyedVectors
 
+import shutil
+
 import os
 import io
 import numpy as np
@@ -29,13 +31,15 @@ class SimilarityTestClass:
     _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
     _embeddings_size = None
     _lower = True
+    _use_intersect_dataset = False
     _oov_word = {}
 
-    def __init__(self, cantidad=None, lower=True):
+    def __init__(self, cantidad=None, lower=True, use_intersect_dataset=False):
         print("Test de Similaridad")
 
         self._embeddings_size = cantidad
         self._lower = lower
+        self._use_intersect_dataset = use_intersect_dataset
 
     ###########################################################################################
     # METRICA
@@ -88,6 +92,7 @@ class SimilarityTestClass:
             else:
                 v = embedding[word2]
 
+            # Calculo de similaridad coseno
             score = u.dot(v) / (np.linalg.norm(u) * np.linalg.norm(v))
             gold.append(similarity)
             pred.append(score)
@@ -102,6 +107,33 @@ class SimilarityTestClass:
     ###########################################################################################
     # MANEJO DE ARCHIVOS Y DATASET
     ###########################################################################################
+
+    def intersectDataset(self, word_vector):
+        # TODO: revisar si hay archivos en la carpeta de interseccion
+        # TODO: realizar interseccion de dataset con dataset de interseccion o dataset original
+        next_dataset_path = Constant.DATA_FOLDER / "_intersect_SimilarityDataset"
+        if not next_dataset_path.exists():
+            os.makedirs(next_dataset_path)
+
+        if len(os.listdir(next_dataset_path)) == 0:
+            for file_name in os.listdir(_DATASET):
+                origin_file = _DATASET / file_name
+                shutil.copy(origin_file, next_dataset_path)
+
+        for file_name in os.listdir(next_dataset_path):
+            file_path = next_dataset_path / file_name
+            lines = []
+            with io.open(file_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    tupla = line.split()
+                    if tupla[0] not in word_vector or tupla[1] not in word_vector:
+                        continue
+
+                    lines.append(line)
+
+            with io.open(file_path, 'w', encoding='utf-8') as f:
+                for line in lines:
+                    f.write(line)
 
 
     """
@@ -184,13 +216,20 @@ class SimilarityTestClass:
     """
     def similarityTest(self):
         results = {}
+        if self._use_intersect_dataset:
+            print("Obteniendo interseccion de datasets")
+            for embedding_name in self._embeddings_name_list:
+                word_vector = get_wordvector(embedding_name, self._embeddings_size)
+                self.intersectDataset(word_vector)
+
+                _DATASET = Constant.DATA_FOLDER / "_intersect_SimilarityDataset"
 
         # Realizacion de test por cada embedding
         for embedding_name in self._embeddings_name_list:
-            print(">>> Cargando vectores...", end='')
-            word_vector = get_wordvector(embedding_name, self._embeddings_size)
             word_vector_name = embedding_name.split('.')[0]
-            print("listo: " + word_vector_name + "\n")
+            print(">>> Cargando vectores" + word_vector_name + "...", end='')
+            word_vector = get_wordvector(embedding_name, self._embeddings_size)
+            print("listo.\n")
 
 
             # Obtencion de nombre de archivos de test
