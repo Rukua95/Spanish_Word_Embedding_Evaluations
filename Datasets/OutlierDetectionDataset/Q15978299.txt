@@ -1,0 +1,12 @@
+Karlovy_Vary
+Liberec
+Pardubice
+Pilsen
+Olomouc
+Ostrava
+Brno
+České_Budějovice
+
+departamento
+Tarn
+región_autónoma

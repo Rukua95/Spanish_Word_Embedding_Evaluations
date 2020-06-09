@@ -1,0 +1,15 @@
+FTP
+TCP
+UDP
+SMTP
+telnet
+IP
+DNS
+ICMP
+
+Unicode
+plug_and_play
+Castillo_de_Balmoral
+Disneyland_Resort
+UTC
+año

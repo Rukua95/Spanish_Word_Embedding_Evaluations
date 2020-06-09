@@ -1,0 +1,15 @@
+corchea
+negra
+semicorchea
+redonda
+cuadrada
+fusa
+blanca
+semifusa
+
+taxonomía_de_Sibley_-_Ahlquist
+Alfa_Romeo_159
+cantata
+ragtime
+Norwegian_Wood
+Ticket_to_Ride

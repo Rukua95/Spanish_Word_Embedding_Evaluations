@@ -1,8 +1,0 @@
-eV
-kilotón
-caloría
-BTU
-J
-ergio
-
-ppi

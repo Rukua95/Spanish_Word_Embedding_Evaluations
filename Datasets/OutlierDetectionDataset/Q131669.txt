@@ -1,0 +1,15 @@
+Ubuntu
+Debian
+Knoppix
+Kubuntu
+Gentoo
+Fedora
+Slackware
+Linux_Mint
+
+distribución
+Linux_Standard_Base
+Eye_of_GNOME
+PHP_-_Nuke
+Dojo_toolkit
+glibc

@@ -1,0 +1,15 @@
+Metegol
+dardos
+Mikado
+Fingerboard
+carrom
+hockey_de_aire
+petanca
+taba
+
+Carrera_de_sacos
+piedra_,_papel_o_tijera
+Last_Christmas
+villancico
+ajedrez
+Othello

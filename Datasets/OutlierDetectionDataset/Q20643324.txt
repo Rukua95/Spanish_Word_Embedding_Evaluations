@@ -1,0 +1,13 @@
+zarzuela
+singspiel
+opereta
+ópera_seria
+grand_opéra
+intermezzo
+opéra_-_comique
+ópera_bufa
+
+dub
+reggae
+parcela
+norma

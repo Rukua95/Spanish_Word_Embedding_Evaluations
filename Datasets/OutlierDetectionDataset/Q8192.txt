@@ -1,0 +1,15 @@
+escritura_cuneiforme
+kanji
+alfabeto_arameo
+copto
+brahmi
+alfabeto_cirílico
+alfabeto_griego
+braille
+
+alfabeto_fonético_aeronáutico
+sistema_de_escritura
+Dureza_Vickers
+gráficos_vectoriales
+matriz_identidad
+puntos_básicos

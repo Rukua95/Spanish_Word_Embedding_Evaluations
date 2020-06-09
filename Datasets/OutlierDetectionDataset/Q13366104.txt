@@ -1,0 +1,13 @@
+cien
+Cuatro
+doce
+XIV
+dos
+diez
+8
+seis
+
+docena
+–_1
+número_decimal
+matriz_identidad

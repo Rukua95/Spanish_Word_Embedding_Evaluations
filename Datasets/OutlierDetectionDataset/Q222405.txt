@@ -1,0 +1,15 @@
+bayoneta
+pilum
+florete
+hacha
+tomahawk
+puño_de_acero
+machete
+tridente
+
+tonfa
+armas_biológicas
+tamiz
+sello
+FN_Five_-_seveN
+Glock

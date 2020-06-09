@@ -1,0 +1,15 @@
+Notepad_+_+
+sed
+nano
+vi
+Kate
+Emacs
+Gedit
+Bloc_de_notas
+
+Paint_Shop_Pro
+CorelDRAW
+Maxima
+KTorrent
+Gnumeric
+LaTeX

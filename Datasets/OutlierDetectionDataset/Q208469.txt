@@ -1,0 +1,15 @@
+Hz
+kN
+°_C
+m_²
+J
+kW
+voltio
+km_²
+
+puntos_básicos
+ppi
+magnitud_aparente
+Coeficiente_de_Gini
+Love_Parade
+Festival_de_Bayreuth

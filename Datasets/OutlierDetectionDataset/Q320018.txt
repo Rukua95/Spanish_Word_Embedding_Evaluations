@@ -1,0 +1,15 @@
+F_-_102_Delta_Dagger
+MiG_-_31
+F_-_106_Delta_Dart
+Sukhoi_Su_-_15
+Yakovlev_Yak_-_28
+Tupolev_Tu_-_128
+Su_-_9
+F_-_89_Scorpion
+
+Sukhoi_Su_-_9
+Gloster_Meteor
+IAR_80
+Lockheed_A_-_12
+Ilyushin_Il_-_10
+A_-_6_Intruder

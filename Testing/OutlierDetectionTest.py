@@ -1,7 +1,6 @@
-from pathlib import Path
-
 from gensim.models.keyedvectors import KeyedVectors
 
+import shutil
 import os
 import io
 import numpy as np
@@ -22,8 +21,11 @@ EMBEDDING_FOLDER = Constant.EMBEDDING_FOLDER
 # Extraccion de embeddings
 def get_wordvector(file, cant=None):
     wordvector_file = EMBEDDING_FOLDER / file
+    print(">>> Cargando vectores" + file + "...", end='')
+    word_vector = KeyedVectors.load_word2vec_format(wordvector_file, limit=cant)
+    print("listo.\n")
 
-    return KeyedVectors.load_word2vec_format(wordvector_file, limit=cant)
+    return word_vector
 
 ###########################################################################################
 # PUNTUACION
@@ -93,16 +95,28 @@ class OutlierDetectionTestClass:
     def omitOOVWord(self, embedding, main_set, outlier_set):
         main_oov = 0
         outlier_oov = 0
+        filter_main_set = []
+        filter_outlier_set = []
 
         for w in main_set:
+            if len(w.strip().split('_')) > 1:
+                continue
+
             if w not in embedding:
                 main_oov += 1
 
+            filter_main_set.append(w)
+
         for w in outlier_set:
+            if len(w.strip().split('_')) > 1:
+                continue
+
             if w not in embedding:
                 outlier_oov += 1
 
-        return main_oov, outlier_oov
+            filter_outlier_set.append(w)
+
+        return filter_main_set, filter_outlier_set, main_oov, outlier_oov
 
 
     """
@@ -155,11 +169,12 @@ class OutlierDetectionTestClass:
         sum_op = 0.0
         sum_od = 0.0
 
-        # Obtencion de porcentaje de omision
+        # Obtencion de porcentaje de palabras oov
         total_main = 0
-        total_main_oov = 0
         total_outlier = 0
+        total_main_oov = 0
         total_outlier_oov = 0
+        omited_test = 0
 
         count = 0
         for test in test_sets:
@@ -169,16 +184,25 @@ class OutlierDetectionTestClass:
 
             # Conjunto principal y outlier
             main_set, outlier_set = test
-            total_main += len(main_set)
-            total_outlier += len(outlier_set)
-
             print(">>> Original set:", end='\n    ')
             print(main_set, end='\n    ')
             print(outlier_set)
 
 
             # Determinar sets con palabras omitidas
-            main_oov, outlier_oov = self.omitOOVWord(embedding, main_set, outlier_set)
+            main_set, outlier_set, main_oov, outlier_oov = self.omitOOVWord(embedding, main_set, outlier_set)
+
+            print(">>> Edited set:", end='\n    ')
+            print(main_set, end='\n    ')
+            print(outlier_set)
+
+            if len(main_set) < 2 or len(outlier_set) < 1:
+                print("Test set no cumple con condiciones de evaluacion")
+                omited_test += 1
+                continue
+
+            total_main += len(main_set)
+            total_outlier += len(outlier_set)
             total_main_oov += main_oov
             total_outlier_oov += outlier_oov
 
@@ -204,7 +228,8 @@ class OutlierDetectionTestClass:
                 (sum_op / cant_test),
                 (sum_od / cant_test),
                 (total_main_oov / total_main),
-                (total_outlier_oov / total_outlier)
+                (total_outlier_oov / total_outlier),
+                omited_test,
             ]
 
         return results
@@ -215,9 +240,51 @@ class OutlierDetectionTestClass:
     ###########################################################################################
 
     def intersectDataset(self, word_vector):
-        # TODO: revisar si hay archivos en la carpeta de interseccion
-        # TODO: realizar interseccion de dataset con dataset de interseccion o dataset original
-        pass
+        next_dataset_path = Constant.DATA_FOLDER / "_intersect_OutlierDetectionDataset"
+
+        # Verificar que existe carpeta para guardar nuevo dataset
+        if not next_dataset_path.exists():
+            os.makedirs(next_dataset_path)
+
+        # Verificar si ya existen datasets intersectados
+        if len(os.listdir(next_dataset_path)) == 0:
+            for file_name in os.listdir(_DATASET):
+                origin_file = _DATASET / file_name
+                shutil.copy(origin_file, next_dataset_path)
+
+        # Revisar cada archivo dentro de la carpeta de dataset
+        for file_name in os.listdir(next_dataset_path):
+            file_path = next_dataset_path / file_name
+            main_set_lines = []
+            outlier_set_lines = []
+            with io.open(file_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if line == "\n":
+                        main_set_lines = outlier_set_lines
+                        outlier_set_lines = []
+                        continue
+
+                    tupla = line.split()
+                    if tupla[0] not in word_vector or tupla[1] not in word_vector:
+                        continue
+
+                    outlier_set_lines.append(line)
+
+            # Eliminamos archivo que no aporta al analisis
+            if len(main_set_lines) < 2 or len(outlier_set_lines) < 1:
+                os.remove(file_path)
+                print("Removed file: " + file_name)
+                continue
+
+            # Escribimos documento
+            with io.open(file_path, 'w', encoding='utf-8') as f:
+                for line in main_set_lines:
+                    f.write(line)
+
+                f.write("\n")
+
+                for line in outlier_set_lines:
+                    f.write(line)
 
 
     """
@@ -290,13 +357,15 @@ class OutlierDetectionTestClass:
     :param exist_oov: determina si se consideran palabras fuera del vocabulario
     """
     def saveResults(self, embedding_name, results):
-        extension = ""
+        if self._use_intersect_dataset:
+            save_path = Constant.RESULTS_FOLDER / "_intersect_OutlierDetectionDataset"
+        else:
+            save_path = _RESULT
 
-        save_path = _RESULT
         if not save_path.exists():
             os.makedirs(save_path)
 
-        save_path = _RESULT / (embedding_name + extension + ".txt")
+        save_path = _RESULT / (embedding_name + ".txt")
 
         with io.open(save_path, 'w', encoding='utf-8') as f:
             for r in results:
@@ -320,6 +389,19 @@ class OutlierDetectionTestClass:
     def outlierDetectionTest(self):
         results = {}
 
+        # Interseccion de datasets
+        if self._use_intersect_dataset:
+            print("Obteniendo interseccion de datasets")
+            for embedding_name in self._embeddings_name_list:
+                word_vector = get_wordvector(embedding_name, self._embeddings_size)
+                self.intersectDataset(word_vector)
+                del word_vector
+
+            _DATASET = Constant.DATA_FOLDER / "_intersect_OutlierDetectionDataset"
+        else:
+            _DATASET = Constant.DATA_FOLDER / "OutlierDetectionDataset"
+
+
         # Realizacion de test por cada embedding
         for embedding_name in self._embeddings_name_list:
             word_vector_name = embedding_name.split('.')[0]
@@ -339,6 +421,7 @@ class OutlierDetectionTestClass:
                 ["OPP", word_vector_results[1]],
                 ["%_main_oov", word_vector_results[2]],
                 ["%_outlier_oov", word_vector_results[3]],
+                ["omited sets", word_vector_results[4]]
             ]
 
             print(">>> Resultados:\n    ", end='')

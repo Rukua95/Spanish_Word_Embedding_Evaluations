@@ -1,0 +1,15 @@
+tiempo
+potencial_eléctrico
+presión
+Masa
+capacitancia
+carga_eléctrica
+resistencia
+fuerza_electromotriz
+
+Coeficiente_de_Gini
+densidad_de_población
+número_áureo
+La_«
+extensión
+Magnitud_absoluta

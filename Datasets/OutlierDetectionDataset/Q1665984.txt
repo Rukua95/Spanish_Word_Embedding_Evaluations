@@ -1,0 +1,15 @@
+electroquímica
+farmacia
+ciencia_de_materiales
+lingüística_computacional
+biotecnología
+bioquímica
+climatología
+ciencia_cognitiva
+
+criptografía
+criptoanálisis
+XML_Schema
+modelo_relacional
+bandeirantes
+cultura

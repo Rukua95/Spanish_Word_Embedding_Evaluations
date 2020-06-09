@@ -1,0 +1,13 @@
+Suroeste
+Zelenograd
+Oeste
+Ókrug_Administrativo_Central
+Okrug_Administrativo_del_Noroeste
+Ókrug_Administrativo_del_Norte
+Okrug_Administrativo_del_Noreste
+Sur
+
+Alfama
+Trastevere
+Azawad
+alta_mar

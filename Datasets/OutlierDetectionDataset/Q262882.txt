@@ -1,0 +1,14 @@
+Graz
+Salzburgo
+Sankt_Pölten
+Innsbruck
+Villach
+Linz
+Klagenfurt
+Eisenstadt
+
+distrito_de_Austria
+Islas_de_la_Línea
+Al_Jfara
+Sarek
+Abisko

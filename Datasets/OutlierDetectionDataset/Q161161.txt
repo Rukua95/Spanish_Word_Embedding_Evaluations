@@ -1,0 +1,15 @@
+SU_-_100
+Panzerjäger_I
+Elefant
+Jagdpanzer_IV
+M18_Hellcat
+Jagdpanther
+Hetzer
+Jagdtiger
+
+Tunguska_M1
+Möbelwagen
+Panzer_IV
+Panzer_III
+SA_-_6
+AGM_-_65_Maverick

@@ -1,0 +1,13 @@
+Ayutthaya
+Hat_Yai
+Chiang_Rai
+Khon_Kaen
+Chiang_Mai
+Nakhon_Ratchasima
+Surat_Thani
+Udon_Thani
+
+Palomar_de_Arroyos
+Slatina
+Bangkok
+Berlín_Occidental

@@ -1,0 +1,15 @@
+jQuery
+WebKit
+OpenGL
+VLC_media_player
+Biblioteca_estándar_de_C
+glibc
+SDL
+OpenSSL
+
+Unreal_Engine
+depurador
+Daemon_Tools
+CorelDRAW
+KTorrent
+iLife

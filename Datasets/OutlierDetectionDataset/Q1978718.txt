@@ -1,0 +1,15 @@
+km
+pies
+pársec
+años_luz
+mi
+ua
+m
+pulgada
+
+magnetón_de_Bohr
+cent
+magnitud_aparente
+Coeficiente_de_Gini
+Rock_in_Rio
+Festival_de_Bayreuth

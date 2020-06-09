@@ -1,0 +1,13 @@
+esternocleidomastoideo
+pectoral_mayor
+tríceps_braquial
+miocardio
+bíceps
+músculo_recto_del_abdomen
+deltoides
+trapecio
+
+vena_porta
+vena_yugular
+Registán
+Letoon

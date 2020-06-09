@@ -1,0 +1,13 @@
+caballero
+rey
+sultán
+duque
+samurái
+emperador
+emperador_bizantino
+faraón
+
+asesino_en_serie
+magnate
+maharajá
+arzobispo_mayor

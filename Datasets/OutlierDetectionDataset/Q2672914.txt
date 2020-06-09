@@ -1,0 +1,13 @@
+impulso
+densidad_de_corriente
+magnetización
+momento_lineal
+momento_angular
+par_motor
+momento_dipolar_eléctrico
+velocidad
+
+Tasa_de_absorción_específica
+ganancia
+configuración_electrónica
+velocidad_del_sonido

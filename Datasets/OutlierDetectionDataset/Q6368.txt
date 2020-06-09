@@ -1,0 +1,15 @@
+Google_Chrome
+Internet_Explorer
+Safari
+Microsoft_Edge
+Chromium
+Konqueror
+Firefox
+Opera
+
+Emacs
+Bloc_de_notas
+iWeb
+Daemon_Tools
+Apertium
+Gettext

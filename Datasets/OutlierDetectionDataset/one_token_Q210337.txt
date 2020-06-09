@@ -1,9 +1,0 @@
-iTunes
-QuickTime
-Flash
-Winamp
-MPlayer
-
-CorelDRAW
-Lucene
-Gettext

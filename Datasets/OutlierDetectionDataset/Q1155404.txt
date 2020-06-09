@@ -1,0 +1,15 @@
+Adobe_Creative_Suite
+Inkscape
+Adobe_Illustrator
+Freehand
+Dia
+Paint_Shop_Pro
+CorelDRAW
+Adobe_Fireworks
+
+Cinema_4D
+LightWave
+Adobe_Premiere
+Windows_Movie_Maker
+Dojo_toolkit
+SDL

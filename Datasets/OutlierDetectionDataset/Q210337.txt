@@ -1,0 +1,15 @@
+iTunes
+Apple_TV
+QuickTime
+Flash
+VLC_media_player
+Winamp
+Windows_Media_Player
+MPlayer
+
+Bloc_de_notas
+Adobe_After_Effects
+software_de_gráficos
+CorelDRAW
+Lucene
+Gettext

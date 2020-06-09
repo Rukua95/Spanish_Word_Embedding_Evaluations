@@ -1,0 +1,15 @@
+MB
+exabyte
+KB
+byte
+petabyte
+GB
+terabyte
+bit
+
+cent
+luminosidad_solar
+número_másico
+Magnitud_absoluta
+Rock_am_Ring
+Proms

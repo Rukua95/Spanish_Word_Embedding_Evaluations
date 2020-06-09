@@ -1,0 +1,15 @@
+director_creativo
+director_de_sistemas_de_información
+COO
+Presidente_del_Consejo_de_Administración
+vicepresidente
+CFO
+CTO
+CEO
+
+Chanyu
+mago
+apellido
+Strauss
+Bernoulli
+Amati

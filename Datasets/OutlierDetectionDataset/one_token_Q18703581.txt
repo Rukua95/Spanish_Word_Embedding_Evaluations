@@ -1,9 +1,0 @@
-Scrabble
-go
-Othello
-Hex
-
-Warhammer 
-Jenga
-damas
-bingo

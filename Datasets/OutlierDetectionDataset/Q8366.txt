@@ -1,0 +1,15 @@
+algoritmo_voraz
+RAR
+criptografía_simétrica
+PageRank
+algoritmos_genéticos
+proceso_de_ortogonalización_de_Gram_-_Schmidt
+eliminación_de_Gauss_-_Jordan
+heurística
+
+portmanteau
+fritura_profunda
+método_científico
+adquisición_del_lenguaje
+cultura_japonesa
+cultura_china

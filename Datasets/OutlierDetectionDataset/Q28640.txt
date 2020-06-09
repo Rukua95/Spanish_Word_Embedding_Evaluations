@@ -1,0 +1,15 @@
+actor
+escritor
+astronauta
+sacerdote
+poeta
+científico
+médico
+educador
+
+central
+conducción
+norma
+ROI
+pana
+Corchorus_capsularis

@@ -1,0 +1,13 @@
+Gran_Manzana
+Marsella
+Singapur
+Barcelona
+Reikiavik
+Venecia
+Gibraltar
+Ámsterdam
+
+Sena_Marítimo
+departamento
+país
+borough

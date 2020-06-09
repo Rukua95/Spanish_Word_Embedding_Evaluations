@@ -1,0 +1,15 @@
+Karlovy_Vary
+Liberec
+Pardubice
+Pilsen
+Olomouc
+Ostrava
+Brno
+České_Budějovice
+
+Galanta
+Ilava
+Palomar_de_Arroyos
+Carrión_de_los_Condes
+Apure
+Distrito_Capital

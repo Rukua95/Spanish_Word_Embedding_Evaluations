@@ -1,0 +1,15 @@
+Adobe_Creative_Suite
+GIMP
+Paint
+Krita
+IrfanView
+Paint.NET
+Adobe_Photoshop_Lightroom
+Adobe_Fireworks
+
+3D_Studio_Max
+LightWave
+Adobe_Premiere
+Kdenlive
+glibc
+SDL

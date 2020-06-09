@@ -1,5 +1,0 @@
-impulso
-magnetización
-velocidad
-
-ganancia

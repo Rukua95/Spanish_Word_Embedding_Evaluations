@@ -1,0 +1,13 @@
+Pizza_Hut
+Taco_Bell
+Wendy's
+KFC
+McDonald's
+Domino's_Pizza
+Burger_King
+Subway
+
+Toys_"_R_"_Us
+7_-_Eleven
+Quora
+Fila

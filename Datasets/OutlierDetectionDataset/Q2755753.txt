@@ -1,0 +1,15 @@
+Westminster
+Wimbledon
+Covent_Garden
+Soho
+Mayfair
+Notting_Hill
+Canary_Wharf
+Greenwich
+
+Chinatown
+Les_Corts
+Orden_del_Santo_Sepulcro_de_Jerusalén
+KDE
+Abadía_de_Pannonhalma
+Port_Royal_des_Champs

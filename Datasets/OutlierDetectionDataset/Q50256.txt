@@ -1,0 +1,13 @@
+Distrito_Este
+Sai_Kung
+Sha_Tin
+Distrito_Sur
+Kwai_Chung
+Distrito_de_las_Islas
+Norte
+Tsuen_Wan
+
+Daxing'anling
+Jotán
+Khotan
+Benxi

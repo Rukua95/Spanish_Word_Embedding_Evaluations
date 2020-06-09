@@ -1,0 +1,15 @@
+tartaletas_de_huevo
+baklava
+yalebi
+bollo
+algodón_de_azúcar
+halva
+lokum
+nougat
+
+Torte
+senbei
+dosa
+Appalam
+mazapán
+churro

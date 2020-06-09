@@ -1,0 +1,12 @@
+Harvard_Business_School
+Paris_School_of_Business
+Audencia_Nantes
+EMLYON_Business_School
+EDHEC
+INSEAD
+Toulouse_Business_School
+Instituto_Superior_de_Gestión
+
+Harvard_Law_School
+Escuela_Superior_de_Malmö
+École_centrale_Paris

@@ -1,0 +1,15 @@
+lactulosa
+sucralosa
+maltosa
+Maltitol
+Isomalta
+sacarosa
+celobiosa
+trehalosa
+
+glicerol
+goma_tragacanto
+gas_CS
+vitamina
+E_-_105
+Oxireno

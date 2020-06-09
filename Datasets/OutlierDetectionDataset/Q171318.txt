@@ -1,0 +1,15 @@
+padre
+abuelo
+hermano
+tío
+hijo
+hija
+madre
+primo_hermano
+
+teísmo
+deísmo
+Muro_de_las_Lamentaciones
+Muros_Largos
+Ak_Koyunlu
+Lisu

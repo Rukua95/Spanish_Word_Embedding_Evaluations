@@ -1,0 +1,15 @@
+Graz
+Salzburgo
+Wiener_Neustadt
+Innsbruck
+Villach
+Linz
+Klagenfurt
+Eisenstadt
+
+nueva_división
+Sava
+portal_de_Wikimedia
+Comunidad_de_Wikipedia
+Peligro_inminente
+De_re_coquinaria

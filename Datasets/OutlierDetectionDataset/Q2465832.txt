@@ -1,0 +1,15 @@
+ciencias_naturales
+química
+física
+fisiología
+astrofísica
+matemáticas
+astronomía
+zoólogo
+
+turcología
+criptoanálisis
+mapa_de_bits
+gráficos_vectoriales
+bandeirantes
+cultura

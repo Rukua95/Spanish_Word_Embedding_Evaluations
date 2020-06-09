@@ -1,0 +1,15 @@
+miedo
+amor
+envidia
+ira
+felicidad
+odio
+tristeza
+esperanza
+
+magnitud_aparente
+Coeficiente_de_Gini
+adicción
+revolución
+ejercicios_espirituales
+Summa_Theologiae

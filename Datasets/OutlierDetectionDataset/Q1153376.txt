@@ -1,0 +1,15 @@
+Dornier_Do_X
+Hughes_H_-_4_Hercules
+Kawanishi_H8K
+Dornier_Do_J
+Beriev_Be_-_200
+Grumman_Goose
+Be_-_12
+Boeing_314
+
+Mitsubishi_T_-_2
+T_-_4
+Vickers_VC10
+Lockheed_A_-_12
+Kamov_Ka_-_25
+AH_-_1W_SuperCobra

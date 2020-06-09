@@ -1,0 +1,15 @@
+barca
+embarcación_de_vela
+lanchas_de_desembarco
+lanchas_motoras
+cañonero_fluvial
+barco_de_vapor
+vela_ligera
+gabarra
+
+Fiat_125
+segmento_E
+afinación
+disfagia
+valarin
+neolengua

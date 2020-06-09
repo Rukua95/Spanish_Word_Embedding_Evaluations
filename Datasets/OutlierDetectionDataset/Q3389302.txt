@@ -1,0 +1,15 @@
+M1911
+Browning_Hi_-_Power
+Beretta_92
+Makarov_PM
+Luger_P08
+Walther_P38
+Desert_Eagle
+Tokarev_TT_-_33
+
+M1_Garand
+SKS
+Nagant_M1895
+culebrina
+GAU_-_8_Avenger
+GShG_-_7,62

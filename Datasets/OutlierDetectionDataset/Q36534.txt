@@ -1,0 +1,15 @@
+fotólisis
+cataliza
+reacción_de_eliminación
+reacción_de_Diels_-_Alder
+descomposición_química
+oxidación
+neutralización
+halogenación
+
+proceso_de_Haber
+Fischer_-_Tropsch
+convertidor_Bessemer
+benchmarking
+mutación
+respiración

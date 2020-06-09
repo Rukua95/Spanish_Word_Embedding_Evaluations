@@ -1,0 +1,15 @@
+Vosgos
+Andes
+Montañas_Rocosas
+Alpes_escandinavos
+Jura
+Cárpatos
+macizo_de_Altái
+Macizo_Central
+
+Monte_Roraima
+meseta_del_Columbia
+SVCD
+VCD
+mar_de_Láptev
+Mar_del_Coral

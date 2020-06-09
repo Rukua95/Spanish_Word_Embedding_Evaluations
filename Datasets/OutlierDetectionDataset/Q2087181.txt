@@ -1,0 +1,15 @@
+Palacio_de_Kensington
+Casa_de_Ana_Frank
+Castillo_de_Durham
+Palacio_de_Blenheim
+Castillo_de_Bodiam
+Palacio_de_Buckingham
+Hampton_Court
+Castillo_de_Windsor
+
+yurta
+Graceland
+Casa_de_Pávlov
+edificio_Dakota
+Borghi
+Ullapool

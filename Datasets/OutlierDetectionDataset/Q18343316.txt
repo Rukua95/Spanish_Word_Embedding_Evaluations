@@ -1,0 +1,14 @@
+sed
+vi
+cat
+chdir
+awk
+grep
+mv
+chmod
+
+Netstat
+AVG
+7_-_Zip
+Freehand
+Adobe_Fireworks

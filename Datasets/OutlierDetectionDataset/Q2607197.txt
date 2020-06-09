@@ -1,0 +1,15 @@
+elfo
+ogro
+Goa'uld
+Asgard
+Squib
+orco
+vampiro
+Wraith
+
+centauro
+Dalek
+Enterprise
+USS_Enterprise
+Comarca
+Angmar

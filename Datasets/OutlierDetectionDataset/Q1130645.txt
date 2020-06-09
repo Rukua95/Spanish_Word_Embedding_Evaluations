@@ -1,0 +1,15 @@
+OpenSSH
+OTRS
+WordPress
+MySQL
+NetBSD
+FreeBSD
+Quantum_GIS
+MariaDB
+
+Daemon_Tools
+ransomware
+cortina
+pañuelo
+mensajería_instantánea
+Túnez

@@ -1,0 +1,15 @@
+R
+GNOME
+GIMP
+GCC
+GNU_Octave
+GNU_Hurd
+Bash
+GTK_+
+
+SteamOS
+TeX_Live
+Daemon_Tools
+ransomware
+The_European_Library
+PubMed_Central

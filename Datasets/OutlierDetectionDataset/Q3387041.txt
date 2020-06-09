@@ -1,0 +1,15 @@
+capacidad_calorífica
+potencial_eléctrico
+presión
+densidad
+concentración
+humedad_relativa
+velocidad
+viscosidad
+
+energía_libre_de_Helmholtz
+cantidad_de_sustancia
+estímulo
+Tasa_de_absorción_específica
+nabla
+magma

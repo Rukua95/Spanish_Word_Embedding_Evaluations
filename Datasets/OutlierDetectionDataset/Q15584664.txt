@@ -1,0 +1,13 @@
+Alūksne
+Balvi
+Aizkraukle
+Cēsis
+Dobele
+Krāslava
+Kuldīga
+Bauska
+
+condados
+Distrito_de_Valmiera
+Islas_de_la_Línea
+Islas_Gilbert

@@ -1,9 +1,0 @@
-Spandau
-Mitte
-Pankow
-Lichtenberg
-
-Wandsbek
-Harburg
-Zelenograd
-distritos 

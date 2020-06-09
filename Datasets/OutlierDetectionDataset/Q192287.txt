@@ -1,0 +1,15 @@
+Sochi
+Sarátov
+Kaliningrado
+Novosibirsk
+Volgogrado
+Podolsk
+Vladivostok
+Paltoga
+
+Islas_de_la_Línea
+Islas_Gilbert
+China_Taipei
+Berlín_Occidental
+provincia_de_Verona
+Viterbo

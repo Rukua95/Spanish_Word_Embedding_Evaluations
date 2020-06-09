@@ -1,0 +1,13 @@
+ajedrez
+go
+backgammon
+chaturanga
+Monopoly
+Othello
+damas
+Los_Colonos_de_Catán
+
+juego_de_naipes
+Mensch_argëre_dich_nicht
+pañuelo
+máscaras_antigás

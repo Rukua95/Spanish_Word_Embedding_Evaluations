@@ -1,0 +1,15 @@
+Derbyshire
+Essex
+Hampshire
+Yorkshire
+Cornualles
+Kent
+Surrey
+Devon
+
+municipios_de_Barcelona
+región_de_Diana
+Yorkshire_del_Sur
+West_Sussex
+Medway
+South_Gloucestershire

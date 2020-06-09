@@ -1,0 +1,15 @@
+potencia
+complemento_a_dos
+inverso_multiplicativo
+operación_binaria
+complemento
+Producto_mixto
+producto_vectorial
+traspuesta_conjugada
+
+formas_cuadráticas
+Radicación
+logaritmo_decimal
+logaritmo_natural
+método_de_la_regla_falsa
+algoritmo_de_Shor

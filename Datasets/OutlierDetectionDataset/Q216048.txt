@@ -1,0 +1,13 @@
+balonmano
+hockey
+bandy
+críquet
+béisbol
+bobsleigh
+hockey_sobre_hielo
+curling
+
+Derby_de_Kentucky
+deportes_ecuestres
+Bowls
+concurso_completo

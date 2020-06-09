@@ -1,0 +1,14 @@
+Doctor_Honoris_Causa
+LLD
+Master_of_Architecture
+Bachelor_of_Science
+Magister
+profesor
+docente
+Master_of_Arts
+
+rango_académico
+Artek
+Filosofía_de_la_educación
+actor_infantil
+pintor_de_cámara

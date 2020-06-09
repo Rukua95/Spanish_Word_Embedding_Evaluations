@@ -1,0 +1,13 @@
+monoclínico
+sistema_cristalino_cúbico
+cuasicristal
+tetragonal
+sólido_amorfo
+sistema_cristalino_triclínico
+ortorrómbico
+hexagonal
+
+subgrupo
+habitante
+números_racionales
+francés

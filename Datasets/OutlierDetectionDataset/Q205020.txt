@@ -1,0 +1,14 @@
+GNOME
+CDE
+Xfce
+MATE
+GPE
+Cinnamon
+Razor_-_qt
+LXDE
+
+Windows_Aero
+FreeDOS
+Trisquel_GNU_/_Linux
+Twitch
+VOD

@@ -1,0 +1,15 @@
+GPIB
+S_/_PDIF
+H._323
+POP3
+HDMI
+DICOM
+CAN
+Wake_on_LAN
+
+leecher
+RTCP
+Palacio_Peterhof
+Disneyland_Resort
+Olimpiadas
+GMT

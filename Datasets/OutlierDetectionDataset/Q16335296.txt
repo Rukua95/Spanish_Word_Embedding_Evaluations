@@ -1,0 +1,15 @@
+augur
+gladiador
+vestal
+hoplita
+centurión
+druida
+trovador
+bardo
+
+agente_de_bolsa
+párroco
+guitarrista
+mensajero
+Rudolf_Höß
+Fletcher_Christian

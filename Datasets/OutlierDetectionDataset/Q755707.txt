@@ -1,0 +1,15 @@
+Tromsø
+Drammen
+Trondheim
+Bergen
+Lillehammer
+Kristiansand
+Stavanger
+Narvik
+
+nueva_división
+Menabe
+XII_Distrito
+XIII_Distrito
+Raión_de_Chornomorske
+Raión_de_Krasnoperekopsk

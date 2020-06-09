@@ -1,7 +1,0 @@
-Inkscape
-Freehand
-Dia
-CorelDRAW
-
-LightWave
-SDL
