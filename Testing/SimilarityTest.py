@@ -19,7 +19,7 @@ EMBEDDING_FOLDER = Constant.EMBEDDING_FOLDER
 # Extraccion de embeddings
 def get_wordvector(file, cant=None):
     wordvector_file = EMBEDDING_FOLDER / file
-    print(">>> Cargando vectores " + file + "...", end='')
+    print(">>> Cargando vectores " + file + " ...", end='')
     word_vector = KeyedVectors.load_word2vec_format(wordvector_file, limit=cant)
     print("listo.\n")
 
@@ -114,7 +114,7 @@ class SimilarityTestClass:
     def resetIntersectDataset(self):
         intersect_dataset_path = Constant.DATA_FOLDER / "_intersection_SimilarityDataset"
         if intersect_dataset_path.exists():
-            os.rmdir(intersect_dataset_path)
+            shutil.rmtree(intersect_dataset_path)
 
     def intersectDataset(self, word_vector):
         print("Intersectando datasets...")
@@ -136,6 +136,7 @@ class SimilarityTestClass:
 
         # Revisar cada archivo dentro de la carpeta de dataset
         print(" > Revision de archivos en dataset")
+        to_delete_files = []
         for file_name in os.listdir(next_dataset_path):
             print(" > Revisando " + file_name)
             file_path = next_dataset_path / file_name
@@ -144,9 +145,9 @@ class SimilarityTestClass:
             # Revisar el dataset intersectado que llevamos hasta el momento
             with io.open(file_path, 'r', encoding='utf-8') as f:
                 for line in f:
-                    tupla = line.split()
+                    tupla = line.lower().split()
 
-                    if tupla[0] not in word_vector or tupla[1] not in word_vector:
+                    if tupla[0] not in word_vector or tupla[1] not in word_vector or len(tupla) != 3:
                         deleted_element += 1
                         continue
 
@@ -154,7 +155,7 @@ class SimilarityTestClass:
 
             if len(lines) == 0:
                 deleted_files += 1
-                os.remove(file_path)
+                to_delete_files.append(file_path)
                 print(" > Archivo esta vacio, se procede a eliminar")
                 continue
 
@@ -164,7 +165,12 @@ class SimilarityTestClass:
                     f.write(line)
 
             print(" > lineas eliminadas: " + str(deleted_element))
-        print(" > archivos eliminados: " + str(deleted_files))
+
+        print(" > archivos a eliminar: " + str(deleted_files))
+        for file in to_delete_files:
+            os.remove(file)
+
+        return True if len(os.listdir(next_dataset_path)) > 0 else False
 
 
     """
@@ -257,7 +263,10 @@ class SimilarityTestClass:
             print("Obteniendo interseccion de datasets")
             for embedding_name in self._embeddings_name_list:
                 word_vector = get_wordvector(embedding_name, self._embeddings_size)
-                self.intersectDataset(word_vector)
+                state = self.intersectDataset(word_vector)
+
+                if not state:
+                    raise Exception("Interseccion vacia de embeddings, no se puede continuar con la evaluacion")
 
             self._DATASET = Constant.DATA_FOLDER / "_intersection_SimilarityDataset"
             self._RESULT = Constant.RESULTS_FOLDER / "_intersection_Similarity"
