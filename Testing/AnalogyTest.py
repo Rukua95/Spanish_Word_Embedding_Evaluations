@@ -53,7 +53,7 @@ class AnalogyTestClass:
     _TEMP_RESULT = Constant.TEMP_RESULT_FOLDER / "Analogy"
 
     def __init__(self, cantidad=None, lower=True, use_intersect_dataset=False, all_score=False, all_combination=False):
-        print("Test de Similaridad")
+        print("Test de Analogias")
 
         self._embeddings_size = cantidad
         self._lower = lower
@@ -392,7 +392,7 @@ class AnalogyTestClass:
                     self._oov_word.append(word)
                     embedding.add(
                         word,
-                        np.random.rand(embedding.vector_size)
+                        np.linalg.norm(np.random.rand(embedding.vector_size))
                     )
 
                 if word in self._oov_word:
@@ -635,7 +635,7 @@ class AnalogyTestClass:
                 # Evaluamos todas las 4-tuplas posibles a partir de todos los pares presentes en el archivo file
                 for i in range(len(pair_list)):
                     for j in range(len(pair_list)):
-                        if i == j:
+                        if i <= j:
                             continue
 
                         # Generamos las 4-tuplas (p1, p2, q1, q2), donde "p1 es a p2 como q1 es aq2"

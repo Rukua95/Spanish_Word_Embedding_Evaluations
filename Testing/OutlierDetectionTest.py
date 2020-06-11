@@ -57,14 +57,14 @@ class OutlierDetectionTestClass:
         sum = 0
         k = 0
         for word in W:
-            u = np.random.rand(embedding.vector_size)
-            v = np.random.rand(embedding.vector_size)
+            u = np.linalg.norm(np.random.rand(embedding.vector_size))
+            v = np.linalg.norm(np.random.rand(embedding.vector_size))
 
             if word in embedding:
                 u = embedding[word]
             else:
                 if word not in self._oov_word.keys():
-                    self._oov_word[word] = np.random.rand(embedding.vector_size)
+                    self._oov_word[word] = np.linalg.norm(np.random.rand(embedding.vector_size))
 
                 u = self._oov_word[word]
 
@@ -72,7 +72,7 @@ class OutlierDetectionTestClass:
                 v = embedding[w]
             else:
                 if w not in self._oov_word.keys():
-                    self._oov_word[w] = np.random.rand(embedding.vector_size)
+                    self._oov_word[w] = np.linalg.norm(np.random.rand(embedding.vector_size))
 
                 v = self._oov_word[w]
 

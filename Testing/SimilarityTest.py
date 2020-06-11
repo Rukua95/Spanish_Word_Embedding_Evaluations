@@ -74,7 +74,7 @@ class SimilarityTestClass:
                 not_found_words += 1
                 not_found_list.append(word1)
                 if word1 not in self._oov_word.keys():
-                    self._oov_word[word1] = np.random.rand(embedding.vector_size)
+                    self._oov_word[word1] = np.linalg.norm(np.random.rand(embedding.vector_size))
 
                 u = self._oov_word[word1]
 
@@ -88,7 +88,7 @@ class SimilarityTestClass:
                 not_found_words += 1
                 not_found_list.append(word2)
                 if word2 not in self._oov_word.keys():
-                    self._oov_word[word2] = np.random.rand(embedding.vector_size)
+                    self._oov_word[word2] = np.linalg.norm(np.random.rand(embedding.vector_size))
 
                 v = self._oov_word[word2]
 
