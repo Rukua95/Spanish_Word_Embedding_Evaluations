@@ -392,7 +392,7 @@ class AnalogyTestClass:
                     self._oov_word.append(word)
                     embedding.add(
                         word,
-                        np.linalg.norm(np.random.rand(embedding.vector_size))
+                        np.random.rand(embedding.vector_size)
                     )
 
                 if word in self._oov_word:
@@ -563,6 +563,62 @@ class AnalogyTestClass:
         return results
 
 
+    def evaluateFile(self, word_vector, file):
+        # TODO: separar lo siguiente en una funcion a parte
+        print(">>> Testing: ", end='')
+        print(file.name)
+        pair_list = self.getAnalogyPairs(file)
+
+        # Inicializamos variables para guardar metricas obtenidas para el archivo de test
+        similarity_total = [0, 0, 0]
+        che_metric = [0, 0, 0, 0]
+
+        oov_tuples = 0
+        oov_elements = 0
+
+        # Evaluamos todas las 4-tuplas posibles a partir de todos los pares presentes en el archivo file
+        for i in range(len(pair_list)):
+            for j in range(len(pair_list)):
+                if i <= j:
+                    continue
+
+                # Generamos las 4-tuplas (p1, p2, q1, q2), donde "p1 es a p2 como q1 es aq2"
+                p = pair_list[i]
+                q = pair_list[j]
+
+                p1 = p[0].strip().split('/')
+                p2 = p[1].strip().split('/')
+                q1 = q[0].strip().split('/')
+                q2 = q[1].strip().split('/')
+
+                # Contamos palabras fuera del vocabulario
+                number_of_oov_elements = self.delete_oov(word_vector, p1, p2, q1, q2)
+                oov_tuples += 1 if number_of_oov_elements > 0 else 0
+                oov_elements += number_of_oov_elements
+
+                # Obtencion de resultados a partir de las metricas disponibles
+                result_tuple = self.evaluateAnalogy(word_vector, file.name, p1, p2, q1, q2)
+
+                # Separamos los resultados por:
+                # -> Similaridad AddCos
+                similarity_total[0] += result_tuple[0]
+
+                if len(result_tuple) > 1:
+                    # -> Similaridad CosMul
+                    similarity_total[1] += result_tuple[1]
+
+                    # TODO: ????????????
+                    similarity_total[2] += result_tuple[2]
+
+                    # -> Puntajes definido por Che
+                    che_metric[0] += result_tuple[3]
+                    che_metric[1] += result_tuple[4]
+                    che_metric[2] += result_tuple[5]
+                    che_metric[3] += result_tuple[6]
+
+        return [similarity_total, che_metric, oov_tuples, oov_elements]
+
+
     """
     Realizacion de test de analogias
     
@@ -605,24 +661,13 @@ class AnalogyTestClass:
             test_file_list = self.getUntestedFiles(word_vector_name)
 
             # Revisamos todos los archivos para realizar test
-            # TODO: usar threads o weas uwu
+
             for file in test_file_list:
-                print(">>> Testing: ", end='')
-                print(file.name)
+                total_test_result = {}
                 pair_list = self.getAnalogyPairs(file)
 
-
-                # Inicializamos variables para guardar metricas obtenidas para el archivo de test
-                total_test_result = {}
-                similarity_total = [0, 0, 0]
-                che_metric = [0, 0, 0, 0]
-
-                # TODO: Calcular la cantida de relaciones, ya que todas seran validas
-                count_relations = 0
                 count_multiply = 1
-                oov_tuples = 0
-                oov_elements = 0
-
+                count_relations = len(pair_list) * (len(pair_list) - 1) / 2
 
                 # En caso de evaluar todas las combinaciones, diferenciamos los test que tienen relaciones no biyectivas
                 if self._all_combination:
@@ -631,52 +676,11 @@ class AnalogyTestClass:
                     else:
                         count_multiply = 2
 
-
-                # Evaluamos todas las 4-tuplas posibles a partir de todos los pares presentes en el archivo file
-                for i in range(len(pair_list)):
-                    for j in range(len(pair_list)):
-                        if i <= j:
-                            continue
-
-                        # Generamos las 4-tuplas (p1, p2, q1, q2), donde "p1 es a p2 como q1 es aq2"
-                        p = pair_list[i]
-                        q = pair_list[j]
-
-                        p1 = p[0].strip().split('/')
-                        p2 = p[1].strip().split('/')
-                        q1 = q[0].strip().split('/')
-                        q2 = q[1].strip().split('/')
-
-                        # Contamos palabras fuera del vocabulario
-                        number_of_oov_elements = self.delete_oov(word_vector, p1, p2, q1, q2)
-                        oov_tuples += 1 if number_of_oov_elements > 0 else 0
-                        oov_elements += number_of_oov_elements
-
-
-                        # Obtencion de resultados a partir de las metricas disponibles
-                        result_tuple = self.evaluateAnalogy(word_vector, file.name, p1, p2, q1, q2)
-
-
-                        # Contar la cantidad de relaciones que se pueden hacer con todas las tuplas posibles
-                        count_relations += 1
-
-                        # Separamos los resultados por:
-                        # -> Similaridad AddCos
-                        similarity_total[0] += result_tuple[0]
-
-                        if len(result_tuple) > 1:
-                            # -> Similaridad CosMul
-                            similarity_total[1] += result_tuple[1]
-
-                            # TODO: ????????????
-                            similarity_total[2] += result_tuple[2]
-
-                            # -> Puntajes definido por Che
-                            che_metric[0] += result_tuple[3]
-                            che_metric[1] += result_tuple[4]
-                            che_metric[2] += result_tuple[5]
-                            che_metric[3] += result_tuple[6]
-
+                file_results = self.evaluateFile(word_vector, file)
+                similarity_total = file_results[0]
+                che_metric = file_results[1]
+                oov_tuples = file_results[2]
+                oov_elements = file_results[3]
 
                 # Calculamos los resultados totales del test
                 # Similaridad
@@ -699,3 +703,4 @@ class AnalogyTestClass:
 
             results[word_vector_name] = self.saveResults(word_vector_name)
 
+        return results
