@@ -228,7 +228,6 @@ class AnalogyTestClass:
     def intersectDataset(self, word_vector):
         print("Intersectando datasets...")
         next_dataset_path = Constant.DATA_FOLDER / "_intersection_AnalogyDataset"
-        deleted_element = 0
         deleted_files = 0
 
         # Verificar que existe carpeta para guardar nuevo dataset
@@ -249,7 +248,7 @@ class AnalogyTestClass:
         for file_name in os.listdir(next_dataset_path):
             print(" > Revisando " + file_name)
             file_path = next_dataset_path / file_name
-            omited_line = 0
+            deleted_element = 0
             lines = []
 
             # Revisar el dataset intersectado que llevamos hasta el momento
@@ -271,7 +270,7 @@ class AnalogyTestClass:
                             q2.append(p)
 
                     if len(q1) == 0 or len(q2) == 0:
-                        omited_line += 1
+                        deleted_element += 1
                         continue
 
                     line = '/'.join(q1) + "\t" + '/'.join(q2)
@@ -280,7 +279,7 @@ class AnalogyTestClass:
             if len(lines) == 0:
                 deleted_files += 1
                 to_delete_files.append(file_path)
-                print(" > Archivo a eliminar")
+                print(" > Archivo esta vacio, se procede a eliminar")
                 continue
 
             # Escribir la nueva interseccion
@@ -288,11 +287,9 @@ class AnalogyTestClass:
                 for line in lines:
                     f.write(line)
 
-            print(" > lineas eliminadas: " + str(omited_line))
-            deleted_element += omited_line
+            print(" > Lineas eliminadas: " + str(deleted_element) + " de " + str(deleted_element + len(lines)))
 
-        print(" > lineas eliminadas: " + str(deleted_element))
-        print(" > archivos a eliminar: " + str(deleted_files))
+        print(" > Archivos a eliminar: " + str(deleted_files))
         for file in to_delete_files:
             os.remove(file)
 
@@ -563,7 +560,7 @@ class AnalogyTestClass:
         return results
 
 
-    def evaluateFile(self, word_vector, file):
+    def evaluateFile(self, file, word_vector):
         # TODO: separar lo siguiente en una funcion a parte
         print(">>> Testing: ", end='')
         print(file.name)
@@ -676,7 +673,7 @@ class AnalogyTestClass:
                     else:
                         count_multiply = 2
 
-                file_results = self.evaluateFile(word_vector, file)
+                file_results = self.evaluateFile(file, word_vector)
                 similarity_total = file_results[0]
                 che_metric = file_results[1]
                 oov_tuples = file_results[2]
@@ -696,7 +693,7 @@ class AnalogyTestClass:
 
                 # Estadisticas de palabras/elementos oov
                 total_test_result["%oov_tuplas"] = (oov_tuples / count_relations) if count_relations > 0 else "Nan"
-                total_test_result["%oov_elements"] = (oov_elements / (4*count_relations)) if count_relations > 0 else "Nan"
+                total_test_result["%oov_elements"] = (oov_elements / (count_multiply)) if count_relations > 0 else "Nan"
 
                 # Guardamos los resultados de forma temporal
                 self.saveTempResults(word_vector_name, file.name, total_test_result)

@@ -93,6 +93,7 @@ class OutlierDetectionTestClass:
     :return: la cantidad de palabras omitidas
     """
     def omitOOVWord(self, embedding, main_set, outlier_set):
+        print(">>> Eliminando terminos de mas de una palabra")
         main_oov = 0
         outlier_oov = 0
         filter_main_set = []
@@ -139,6 +140,7 @@ class OutlierDetectionTestClass:
             pos = len(main_set)
 
             W_outlier = W
+            # Obtenemos puntaje del resto de elementos en el conjunto
             for i in range(len(W_outlier)):
 
                 C = W_outlier[0: i] + W_outlier[i+1:] + [outlier]
@@ -189,12 +191,14 @@ class OutlierDetectionTestClass:
             print(outlier_set)
 
 
-            # Determinar sets con palabras omitidas
+            # Cuenta cantidad de palabras oov y elimina terminos que utilicen mas de una palabra
             main_set, outlier_set, main_oov, outlier_oov = self.omitOOVWord(embedding, main_set, outlier_set)
 
-            print(">>> Edited set:", end='\n    ')
+            print(">>> Sets editados:", end='\n    ')
             print(main_set, end='\n    ')
+            print("oov words: " + str(main_oov) + " de " + str(len(main_set)), end='\n    ')
             print(outlier_set)
+            print("oov words: " + str(outlier_oov) + " de " + str(len(outlier_set)), end='\n    ')
 
             if len(main_set) < 2 or len(outlier_set) < 1:
                 print("Test set no cumple con condiciones de evaluacion")
@@ -222,7 +226,7 @@ class OutlierDetectionTestClass:
         results = []
 
         if cant_test == 0:
-            results = ["Nan", "Nan", "Nan", "Nan"]
+            results = ["Nan", "Nan", "Nan", "Nan", "Nan"]
         else:
             results = [
                 (sum_op / cant_test),
@@ -240,6 +244,7 @@ class OutlierDetectionTestClass:
     ###########################################################################################
 
     def resetIntersectDataset(self):
+        print("Eliminando archivos en carpeta de interseccion de dataset")
         intersect_dataset_path = Constant.DATA_FOLDER / "_intersection_OutlierDetectionDataset"
         if intersect_dataset_path.exists():
             shutil.rmtree(intersect_dataset_path)
@@ -247,7 +252,6 @@ class OutlierDetectionTestClass:
     def intersectDataset(self, word_vector):
         print("Intersectando datasets...")
         next_dataset_path = Constant.DATA_FOLDER / "_intersection_OutlierDetectionDataset"
-        deleted_element = 0
         deleted_files = 0
 
         # Verificar que existe carpeta para guardar nuevo dataset
@@ -268,6 +272,7 @@ class OutlierDetectionTestClass:
         for file_name in os.listdir(next_dataset_path):
             print(" > Revisando " + file_name)
             file_path = next_dataset_path / file_name
+            deleted_element = 0
             main_set_lines = []
             outlier_set_lines = []
 
@@ -279,7 +284,7 @@ class OutlierDetectionTestClass:
                         continue
 
                     tupla = line.lower().split()
-                    if tupla[0] not in word_vector:
+                    if tupla[0] not in word_vector or len(tupla) > 1:
                         deleted_element += 1
                         continue
 
@@ -289,7 +294,7 @@ class OutlierDetectionTestClass:
             if len(main_set_lines) < 2 or len(outlier_set_lines) < 1:
                 deleted_files += 1
                 to_delete_files.append(file_path)
-                print("  > Archivo removido: " + file_name)
+                print("  > Archivo esta vacio, se procede a eliminar")
                 continue
 
             # Escribimos documento
@@ -302,9 +307,10 @@ class OutlierDetectionTestClass:
                 for line in outlier_set_lines:
                     f.write(line)
 
-        print(" > Lineas eliminadas: " + str(deleted_element))
+            total_lines = len(main_set_lines) + len(outlier_set_lines) + deleted_element
+            print(" > Lineas eliminadas: " + str(deleted_element) + " de " + str(total_lines))
 
-        print(" > archivos a eliminar: " + str(deleted_files))
+        print(" > archivos a eliminar: " + str(deleted_files) + "\n")
         for file in to_delete_files:
             os.remove(file)
 
@@ -317,6 +323,7 @@ class OutlierDetectionTestClass:
     :return: lista con nombre de archivos con test de outlier detection
     """
     def getTestFiles(self):
+        print(">>> Obteniendo nombre de archivos de test desde:\n     " + str(self._DATASET))
         if not self._DATASET.exists():
             raise Exception("No se logro encontrar carpeta con test")
 
@@ -422,6 +429,7 @@ class OutlierDetectionTestClass:
 
             self._DATASET = Constant.DATA_FOLDER / "_intersection_OutlierDetectionDataset"
             self._RESULT = Constant.RESULTS_FOLDER / "_intersection_OutlierDetection"
+            print("Nuevo dataset en:\n " + str(self._DATASET))
 
         else:
             self._DATASET = Constant.DATA_FOLDER / "OutlierDetectionDataset"
@@ -429,6 +437,7 @@ class OutlierDetectionTestClass:
 
 
         # Realizacion de test por cada embedding
+        print("\n>>> Inicio de test <<<\n")
         for embedding_name in self._embeddings_name_list:
             word_vector_name = embedding_name.split('.')[0]
             word_vector = get_wordvector(embedding_name, self._embeddings_size)
@@ -448,8 +457,9 @@ class OutlierDetectionTestClass:
                 ["omited sets", word_vector_results[4]]
             ]
 
-            print(">>> Resultados:\n    ", end='')
-            print(word_vector_results, end='\n\n')
+            print(">>> Resultados:")
+            for tupla in word_vector_results:
+                print(tupla)
 
 
             # Guardado de resultados

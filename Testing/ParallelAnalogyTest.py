@@ -68,6 +68,27 @@ class AnalogyTestClass:
         self._all_score = all_score
         self._all_combination = all_combination
 
+    def saveResults(self, results, word_vector_name):
+        save_path = self._RESULT
+
+        if not save_path.exists():
+            os.makedirs(save_path)
+
+        result_path = save_path / (word_vector_name + ".txt")
+        print(">>> Guardando resultados en:\n     " + str(result_path))
+
+        with io.open(result_path, 'w', encoding='utf-8') as f:
+            for test_name in results.keys():
+                f.write(test_name + "\n")
+
+                for result_name in results[test_name].keys():
+                    f.write(result_name + ": " + str(results[test_name][result_name]) + "\n")
+
+
+    def resetIntersectDataset(self):
+        self._analogy.resetIntersectDataset()
+
+
     def analogyTest(self):
         results = {}
 
@@ -83,22 +104,26 @@ class AnalogyTestClass:
 
             self._DATASET = Constant.DATA_FOLDER / "_intersection_AnalogyDataset"
             self._RESULT = Constant.RESULTS_FOLDER / "_intersection_Analogy"
+            print("Nuevo dataset en:\n " + str(self._DATASET))
 
         else:
             self._DATASET = Constant.DATA_FOLDER / "AnalogyDataset"
             self._RESULT = Constant.RESULTS_FOLDER / "Analogy"
 
         # Realizacion de test por cada embedding
+        print("\n>>> Inicio de test <<<\n")
         for embedding_name in self._embeddings_name_list:
-            embedding_results = []
             word_vector_name = embedding_name.split('.')[0]
             word_vector = get_wordvector(embedding_name, self._embeddings_size)
+
 
             # Obtencion de archivos que faltan por testear
             test_file_list = self._analogy.getUntestedFiles(word_vector_name)
 
+
             # Revisamos todos los archivos para realizar test
             output_file_results = []
+            print(">>> Inicio de test en paralelo")
             with Pool(4) as p:
                 func = partial(self._analogy.evaluateFile, word_vector=word_vector)
                 output_file_results = p.map(func, test_file_list)
@@ -106,13 +131,13 @@ class AnalogyTestClass:
             print("Fin de test para " + embedding_name)
 
             assert len(test_file_list) == len(output_file_results)
+
+            embedding_results = {}
             for i in range(len(test_file_list)):
                 total_test_result = {}
                 file = test_file_list[i]
                 result = output_file_results[i]
                 pair_list = self._analogy.getAnalogyPairs(file)
-
-                print("Guardando resultados de " + file)
 
                 count_multiply = 1
                 count_relations = len(pair_list) * (len(pair_list) - 1) / 2
@@ -149,8 +174,11 @@ class AnalogyTestClass:
                 total_test_result["%oov_elements"] = (
                             oov_elements / (4 * count_relations)) if count_relations > 0 else "Nan"
 
-                # Guardamos los resultados de forma temporal
+                # Guardamos los resultados
                 embedding_results[file.name] = total_test_result
+
+            self.saveResults(embedding_results, word_vector_name)
+            results[word_vector_name] = embedding_results
 
 
         return results
