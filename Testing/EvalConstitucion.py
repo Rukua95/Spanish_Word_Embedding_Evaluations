@@ -9,385 +9,291 @@ import random
 # Clasificacion a partir de vectores promedio
 ###########################################################################################
 
-
-def MeanVectorEvaluation(word_vector, word_vector_name):
-    # Obtencion de datos ordenados, ademas de sus respectivos vectores promedios.
-    gob_concept_vectors, gob_args_vectors, open_args_vectors, mode_vectors = ConstitucionUtil.getSortedDataset(
-        word_vector)
-
-    # Task A
-    print("\nTask A")
-    result_taskA = meanVectorEvalTaskA(gob_args_vectors)
-
-    # Task B
-    print("\nTask B")
-    result_taskB = meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors)
-
-    # Task C
-    print("\nTask C")
-    result_taskC = meanVectorEvalTaskC(gob_args_vectors, open_args_vectors)
-
-    # TODO: save results
-
-    return [result_taskA, result_taskB, result_taskC]
+class ConstitucionTestClass:
+    def __init__(self):
+        print("Constitucion test class")
 
 
-def meanVectorEvalTaskA(gob_args_vectors):
-    total = 0
-    total_evaluado = 0
-    args_by_concept_by_topic = {}
+    def prepareTaskA(self, gob_concept_vectors, gob_args_vectors):
 
-    # Organizar argumentos por topico y por concepto
-    for topic in gob_args_vectors.keys():
-        print("Topico: " + topic)
+        # Manejo de conceptos #
 
-        if topic not in args_by_concept_by_topic.keys():
-            args_by_concept_by_topic[topic] = {}
+        # Inicializar diccionario, segun topico, con lista de vectores de conceptos
+        gob_concept_vectors_list_by_topics = {}
+        # Inicializar diccionario, segun topico, con lista de conceptos
+        gob_concept_concept_list_by_topics = {}
 
-        total += len(gob_args_vectors[topic])
+        # Inicializamos topicos
+        for topic in gob_concept_vectors.keys():
+            gob_concept_vectors_list_by_topics[topic] = []
+            gob_concept_concept_list_by_topics[topic] = []
 
-        # Organizamos vectores segun concept
-        for tupla in gob_args_vectors[topic]:
-            concept = tupla["concept"]
-            arg_vector = tupla["arg"]["vector"]
+        # Obtenemos los vectores correspondientes a cada concepto de gobierno.
+        for topic in gob_concept_vectors.keys():
+            print("Topico " + topic + ", cantidad de conceptos: " + str(len(gob_concept_vectors[topic].keys())))
 
-            # Omitimos vectores vacios
-            if arg_vector.size == 0:
-                continue
+            # Guardamos vectores y strings de conceptos
+            for concept in gob_concept_vectors[topic].keys():
+                concept_vector = gob_concept_vectors[topic][concept]
 
-            total_evaluado += 1
+                if concept_vector.size == 0:
+                    continue
 
-            if concept not in args_by_concept_by_topic[topic].keys():
-                args_by_concept_by_topic[topic][concept] = []
+                # Guardando vectores
+                gob_concept_vectors_list_by_topics[topic].append(concept_vector)
 
-            args_by_concept_by_topic[topic][concept].append(arg_vector)
+                # Guardar concepts asociado
+                gob_concept_concept_list_by_topics[topic].append(concept)
 
-        for concept in args_by_concept_by_topic[topic].keys():
-            print(" > " + concept)
+            gob_concept_vectors_list_by_topics[topic] = np.vstack(gob_concept_vectors_list_by_topics[topic])
 
-    print("total de argumentos: " + str(total))
-    print("total a evaluar: " + str(total_evaluado))
 
-    # Experimentos
-    repetitions = 5
-    total_args_by_topic = {}
-    accuracy_result = {}
-    final_result_top1 = {}
-    final_result_top5 = {}
-    for h in range(repetitions):
-        print("Experimento " + str(h + 1))
+        # Manejo de argumentos #
 
-        # Separamos en train y test set
-        for topic in args_by_concept_by_topic.keys():
-            print(" > Topico " + topic)
+        # Inicializar diccionario, segun topico, con lista de vectores de argumentos
+        gobc_arguments_vectors_list_by_topics = {}
+        # Inicializar diccionario, segun topico, con lista de argumentos
+        gobc_arguments_concept_list_by_topics = {}
 
-            test_set = {}
-            model = []
-            concept_list = []
-            if topic not in total_args_by_topic.keys():
-                total_args_by_topic[topic] = 0
+        # Inicializamos topicos
+        for topic in gob_args_vectors.keys():
+            gobc_arguments_vectors_list_by_topics[topic] = []
+            gobc_arguments_concept_list_by_topics[topic] = []
 
-            # Separamos set y organizamos segun concepto
-            for concept in args_by_concept_by_topic[topic].keys():
-                total_args = len(args_by_concept_by_topic[topic][concept])
-                total_args_by_topic[topic] += total_args
+        # Obtenemos los vectores correspondientes a cada argumento
+        for topic in gob_args_vectors.keys():
+            print("Topico " + topic + ": cantidad de vectores " + str(len(gob_args_vectors[topic])))
 
-                print("    > " + concept + ", cantidad de args: " + str(total_args))
-                print("      train_set size = " + str(int(total_args * 0.8)) + ", test_set size = " + str(
-                    total_args - int(total_args * 0.8)))
+            # Guardamos vectores y strings de argumentos
+            for tupla in gob_args_vectors[topic]:
+                concept = tupla["concept"]
+                args_content = tupla["arg"]["content"]
+                args_vector = tupla["arg"]["vector"]
 
-                idx = random.sample(range(total_args), int(total_args * 0.8))
+                # Revisar que concepto abierto entregado no es nulo
+                if args_content.lower() == 'null':
+                    continue
 
-                train_set = []
+                # Revisar que el concepto abierto tiene un vector promedio que lo represente
+                if args_vector.size == 0:
+                    continue
 
-                for i in range(total_args):
-                    if i in idx:
-                        train_set.append(args_by_concept_by_topic[topic][concept][i])
-                    else:
-                        # Test set esta separado por concepto
-                        if concept not in test_set.keys():
-                            test_set[concept] = []
+                gobc_arguments_vectors_list_by_topics[topic].append(args_vector)
+                gobc_arguments_concept_list_by_topics[topic].append(concept)
 
-                        test_set[concept].append(args_by_concept_by_topic[topic][concept][i])
+        return [gobc_arguments_vectors_list_by_topics, gobc_arguments_concept_list_by_topics], [gob_concept_vectors_list_by_topics, gob_concept_concept_list_by_topics]
 
-                # Entrenamos el modelo
-                train_set = np.vstack(train_set)
-                model.append(np.mean(train_set, axis=0))
 
-                concept_list.append(concept)
+    def prepareTaskB(self, gob_concept_vectors, open_args_vectors):
 
-            # Realizamos test
-            total_test_size = 0
-            top1_correct = 0
+        # Manejo de conceptos de gobierno #
+
+        # Inicializar diccionario, segun topico, con lista de vectores
+        gob_concept_vectors_list_by_topics = {}
+        # Inicializar diccionario, segun topico, con lista de conceptos
+        gob_concept_concept_list_by_topics = {}
+
+        # Inicializamos topicos
+        for topic in gob_concept_vectors.keys():
+            gob_concept_vectors_list_by_topics[topic] = []
+            gob_concept_concept_list_by_topics[topic] = []
+
+        # Obtenemos los vectores correspondientes a cada concepto de gobierno.
+        for topic in gob_concept_vectors.keys():
+            print("Topico " + topic + ", cantidad de conceptos: " + str(len(gob_concept_vectors[topic].keys())))
+
+            # Guardamos vectores y strings de conceptos
+            for concept in gob_concept_vectors[topic].keys():
+                concept_vector = gob_concept_vectors[topic][concept]
+
+                if concept_vector.size == 0:
+                    continue
+
+                # Guardando vectores
+                gob_concept_vectors_list_by_topics[topic].append(concept_vector)
+
+                # Guardar concepts
+                gob_concept_concept_list_by_topics[topic].append(concept)
+
+            gob_concept_vectors_list_by_topics[topic] = np.vstack(gob_concept_vectors_list_by_topics[topic])
+
+
+        # Manejo de conceptos abierto #
+
+        # Inicializar diccionario, segun topico, con lista de vectores
+        open_arguments_vectors_list_by_topics = {}
+        # Inicializar diccionario, segun topico, con lista de conceptos abiertos
+        open_arguments_concept_list_by_topics = {}
+
+        # Inicializamos topicos
+        for topic in open_args_vectors.keys():
+            open_arguments_vectors_list_by_topics[topic] = []
+            open_arguments_concept_list_by_topics[topic] = []
+
+        # Obtenemos los vectores correspondientes a cada concepto abierto.
+        for topic in open_args_vectors.keys():
+            print("Topico " + topic + ": cantidad de vectores " + str(len(open_args_vectors[topic])))
+
+            # Guardamos vectores y strings de conceptos abiertos
+            for tupla in open_args_vectors[topic]:
+                equivalent_concept = tupla["concept"]
+                open_concept = tupla["open_concept"]["content"]
+                open_concept_vector = tupla["open_concept"]["vector"]
+
+                # Revisar que concepto esta dentro de los conceptos de gobierno
+                if not equivalent_concept in gob_concept_concept_list_by_topics[topic]:
+                    continue
+
+                # Revisar que concepto abierto entregado no es nulo
+                if open_concept.lower() == 'null':
+                    continue
+
+                # Revisar que el concepto abierto tiene un vector promedio que lo represente
+                if open_concept_vector.size == 0:
+                    continue
+
+                # Guardando vectores
+                open_arguments_vectors_list_by_topics[topic].append(open_concept_vector)
+
+                # Guardando concepto equivalente
+                open_arguments_concept_list_by_topics[topic].append(equivalent_concept)
+
+        return [open_arguments_vectors_list_by_topics, open_arguments_concept_list_by_topics], [gob_concept_vectors_list_by_topics, gob_concept_concept_list_by_topics]
+
+
+    def prepareTaskC(self, gob_args_vectors, open_args_vectors, mode_vectors):
+        # Manejo de conceptos abierto #
+
+        # Inicializar diccionario, segun topico, con lista de vectores
+        arguments_vectors_list_by_topics = {}
+        # Inicializar diccionario, segun topico, con lista de conceptos abiertos
+        arguments_concept_list_by_topics = {}
+
+        # Inicializamos topicos
+        for topic in open_args_vectors.keys():
+            arguments_vectors_list_by_topics[topic] = []
+            arguments_concept_list_by_topics[topic] = []
+
+        # Obtenemos los vectores correspondientes a cada concepto abierto.
+        for topic in open_args_vectors.keys():
+            print("Topico " + topic + ": cantidad de vectores " + str(len(open_args_vectors[topic])))
+
+            # Guardamos vectores y strings de conceptos abiertos
+            for tupla in (open_args_vectors[topic] + gob_args_vectors[topic]):
+                argument = tupla["arg"]["content"]
+                arg_vector = tupla["arg"]["vector"]
+                arg_mode = tupla["mode"]
+
+                # Revisar que argumento es de un modo valido
+                if arg_mode == "blank" or arg_mode == "undefined":
+                    continue
+
+                # Revisar que argumento entregado no es nulo
+                if argument.lower() == 'null':
+                    continue
+
+                # Revisar que el argumento tiene un vector promedio que lo represente
+                if arg_vector.size == 0:
+                    continue
+
+                # Guardando vectores
+                arguments_vectors_list_by_topics[topic].append(arg_vector)
+
+                # Guardando concepto equivalente
+                arguments_concept_list_by_topics[topic].append(arg_mode)
+
+
+
+
+    def MeanVectorEvaluation(self, word_vector, word_vector_name):
+        # Obtencion de datos ordenados, ademas de sus respectivos vectores promedios.
+        gob_concept_vectors, gob_args_vectors, open_args_vectors, mode_vectors = ConstitucionUtil.getSortedDataset(
+            word_vector)
+
+        for key in gob_concept_vectors.keys():
+            print(key + ": " + str(len(gob_concept_vectors[key])))
+
+        for key in gob_args_vectors.keys():
+            print(key + ": " + str(len(gob_args_vectors[key])))
+
+        for key in open_args_vectors.keys():
+            print(key + ": " + str(len(open_args_vectors[key])))
+
+        for mode in mode_vectors:
+            print(mode)
+
+        ######################################################################################
+        # Task A
+
+        print("\nTask A")
+        gobc_arguments_vec_label, gob_concept_vectors_label = self.prepareTaskA(gob_concept_vectors, gob_args_vectors)
+        result_taskA = self.meanVectorClasification(gobc_arguments_vec_label[0], gobc_arguments_vec_label[1], gob_concept_vectors_label[0], gob_concept_vectors_label[1])
+
+
+        ######################################################################################
+        # Task B
+
+        open_concept_vector_label, gob_concept_vectors_label = self.prepareTaskB(gob_concept_vectors, open_args_vectors)
+        print("\nTask B")
+        result_taskB = self.meanVectorClasification(open_concept_vector_label[0], open_concept_vector_label[1], gob_concept_vectors_label[0], gob_concept_vectors_label[1])
+
+
+        ######################################################################################
+        # Task C
+        #arguments_vector_label, arg_mode_vectors_label = self.prepareTaskB(gob_args_vectors, open_args_vectors, mode_vectors)
+        print("\nTask C")
+        #result_taskC = self.meanVectorClasification(gob_args_vectors, open_args_vectors)
+
+        # TODO: save results
+
+        return result_taskA, result_taskB#, result_taskC
+
+
+    def meanVectorClasification(self, input_vectors, input_labels, class_vector, class_label):
+        acuraccy_results = {}
+
+        # Obtencion accuracy (top1 y top5) de similaridad.
+        for topic in input_vectors.keys():
+            print("Topico " + topic + ": cantidad de vectores " + str(len(input_vectors[topic])))
+
+            total_evaluado = len(input_vectors[topic])
             top5_correct = 0
-            for concept in test_set.keys():
-                total_test_size += len(test_set[concept])
-
-                for arg_vec in test_set[concept]:
-                    results = cosine_similarity(model, np.array([arg_vec]))
-                    results = results.reshape(1, results.size)[0]
-
-                    index = np.argsort(results)
-                    index_most_similar = index[-1]
-                    index_most_similar_top5 = index[-5:]
-
-                    # Calcular si la prediccion es correcta
-                    if concept == concept_list[index_most_similar]:
-                        top1_correct += 1
-
-                    # Calcular si la prediccion es correcta en los primeros 5
-                    for id in index_most_similar_top5:
-                        if concept == concept_list[id]:
-                            top5_correct += 1
-                            break
-
-            print(" > topic " + topic + " results")
-            print(top1_correct / total_test_size)
-            print(top5_correct / total_test_size)
-
-            if topic not in final_result_top1.keys():
-                final_result_top1[topic] = 0
-                final_result_top5[topic] = 0
-                accuracy_result[topic] = []
-
-            final_result_top1[topic] += top1_correct / total_test_size
-            final_result_top5[topic] += top5_correct / total_test_size
-
-    for topic in final_result_top1.keys():
-        accuracy_result[topic] = [final_result_top1[topic] / repetitions, final_result_top5[topic] / repetitions, total_args_by_topic[topic]]
-
-    print("Final results: ", end='')
-    print([final_result_top1, final_result_top5])
-
-    return accuracy_result
-
-
-def meanVectorEvalTaskB(gob_concept_vectors, open_args_vectors):
-    ######################################################################################
-    # Organizacion de datos
-    ######################################################################################
-
-    # Diccionario, segun topico, con lista de vectores
-    gob_concept_vectors_list_by_topics = {}
-
-    # Diccionario, segun topico, con lista de conceptos
-    gob_concept_list_by_topics = {}
-
-    # Obtenemos los vectores correspondientes a cada concepto de gobierno.
-    for topic in gob_concept_vectors.keys():
-        # Inicialicion de diccionario para guardar vectores correspondientes a conceptos de gobierno
-        if not topic in gob_concept_vectors_list_by_topics.keys():
-            gob_concept_vectors_list_by_topics[topic] = np.array([])
-            gob_concept_list_by_topics[topic] = []
-
-        print("Topico " + topic + ", cantidad de conceptos: " + str(len(gob_concept_vectors[topic].keys())))
-
-        # Guardamos vectores y strings de conceptos
-        for concept in gob_concept_vectors[topic].keys():
-            if gob_concept_vectors[topic][concept].size == 0:
-                continue
-
-            mean_vector = gob_concept_vectors[topic][concept]
-
-            # Guardar vectores
-            if gob_concept_vectors_list_by_topics[topic].size == 0:
-                gob_concept_vectors_list_by_topics[topic] = mean_vector
-            else:
-                gob_concept_vectors_list_by_topics[topic] = np.vstack(
-                    (gob_concept_vectors_list_by_topics[topic], mean_vector))
-
-            # Guardar concepts
-            gob_concept_list_by_topics[topic].append(concept)
-
-    for topic in gob_concept_list_by_topics.keys():
-        for concept in gob_concept_list_by_topics[topic]:
-            print(" > T: " + topic + " C: " + concept)
-
-    ######################################################################################
-
-    acuraccy_results = {}
-
-    # Cantidad de argumentos por topico
-    total_open_args = 0
-    for topic in open_args_vectors.keys():
-        print(topic + " " + str(len(open_args_vectors[topic])))
-        total_open_args += len(open_args_vectors[topic])
-
-    print("total: " + str(total_open_args) + "\n")
-
-    # Obtencion accuracy (top1 y top5) de similaridad.
-    for topic in open_args_vectors.keys():
-        print("Topico " + topic + ": cantidad de vectores " + str(len(open_args_vectors[topic])))
-
-        total = 0
-        total_evaluado = 0
-        top5_correct = 0
-        top1_correct = 0
-
-        for tupla in open_args_vectors[topic]:
-            equivalent_concept = tupla["concept"]
-            open_concept = tupla["open_concept"]["content"]
-            open_concept_vector = tupla["open_concept"]["vector"]
-
-            # Revisar que concepto esta dentro de los conceptos de gobierno
-            if not equivalent_concept in gob_concept_list_by_topics[topic]:
-                continue
-
-            total += 1
-
-            # Revisar que concepto abierto entregado no es nulo
-            if open_concept.lower() == 'null':
-                continue
-
-            # Revisar que el concepto abierto tiene un vector promedio que lo represente
-            if open_concept_vector.size == 0:
-                continue
-
-            total_evaluado += 1
-
-            # Comparando similaridad entre vectores promedios
-            results = cosine_similarity(gob_concept_vectors_list_by_topics[topic], np.array([open_concept_vector]))
-            results = results.reshape(1, results.size)[0]
-
-            index = np.argsort(results)
-            index_most_similar = index[-1]
-            index_most_similar_top5 = index[-5:]
-
-            # Calcular si se predijo correctamente
-            if equivalent_concept == gob_concept_list_by_topics[topic][index_most_similar]:
-                top1_correct += 1
-
-            # Calcular si la prediccion es correcta en los primeros 5
-            for id in index_most_similar_top5:
-                if equivalent_concept == gob_concept_list_by_topics[topic][id]:
-                    top5_correct += 1
-                    break
-
-        # Calculo de accuracy para el topico
-        top1_acuraccy = top1_correct / total_evaluado
-        top5_acuraccy = top5_correct / total_evaluado
-
-        print("Resultados: " + str(top1_acuraccy) + " " + str(top5_acuraccy))
-
-        if topic not in acuraccy_results.keys():
-            acuraccy_results[topic] = []
-
-        acuraccy_results[topic] = [top1_acuraccy, top5_acuraccy, total_evaluado, total]
-
-    total_final = 0
-    for r in acuraccy_results:
-        total_final += r[-1]
-
-        print("Datos: ", end='')
-        print(r)
-        print("% omitidos: " + str(1 - r[-2] / r[-1]))
-
-    print("total final: " + str(total_final))
-
-    return acuraccy_results
-
-
-def meanVectorEvalTaskC(gob_args_vectors, open_args_vectors):
-    total_argumentos = 0
-    total_evaluado = 0
-
-    # Separamos los argumentos segun modo de argumentacion
-    arguments_by_mode = {}
-    for key in gob_args_vectors.keys():
-        total_argumentos += len(gob_args_vectors[key] + open_args_vectors[key])
-
-        for tupla in (gob_args_vectors[key] + open_args_vectors[key]):
-            arg_vec = tupla["arg"]["vector"]
-            mode = tupla["mode"]
-
-            # Eliminamos argumentos que no tengan vectores
-            if arg_vec.size == 0:
-                continue
-
-            # Eliminamos argumentos que sean indefinido/indeterminables
-            if mode == "undefined" or mode == "blank":
-                continue
-
-            total_evaluado += 1
-
-            if mode not in arguments_by_mode.keys():
-                arguments_by_mode[mode] = []
-
-            # Guardamos vector de argumento segun modo argumentativo
-            arguments_by_mode[mode].append(arg_vec)
-
-    print("Total de argumentos: " + str(total_argumentos))
-    print("Total a evaluar: " + str(total_evaluado))
-
-    for mode in arguments_by_mode.keys():
-        print(mode + ", cantidad de argumentos: " + str(len(arguments_by_mode[mode])))
-
-    # Realizamos los experimentos
-    final_accuracy = 0
-    repetitions = 5
-    for h in range(repetitions):
-        print("Experiment " + str(h + 1))
-        test_set = {}
-        mode_mean_vectors = []
-        modes = []
-
-        # Usamos train set para obtener vector promedio para cada modo de argumentacion
-        for key in arguments_by_mode.keys():
-            modes.append(key)
-
-            if key not in test_set.keys():
-                test_set[key] = []
-
-            # Realizamos la separacion en train-set y test-set
-            cant_arg = len(arguments_by_mode[key])
-            random_sample_idx = random.sample(range(cant_arg), int(cant_arg * 0.8))
-
-            train_set = []
-
-            for i in range(cant_arg):
-                if i in random_sample_idx:
-                    train_set.append(arguments_by_mode[key][i])
-
-                else:
-                    # Test set esta separado por modo de argumentacion
-                    test_set[key].append(arguments_by_mode[key][i])
-
-            train_set = np.vstack(train_set)
-
-            # Entrenamos el modelo, calculamos vector promedio para cada modo de argumentacion
-            mode_mean_vectors.append(np.mean(train_set, axis=0))
-
-        mode_mean_vectors = np.vstack(mode_mean_vectors)
-
-        # Calculamos el accuracy
-        top1_correct = 0
-        total_test_size = 0
-        for key in test_set.keys():
-            total_test_size += len(test_set[key])
-
-            for arg_vec in test_set[key]:
-                results = cosine_similarity(mode_mean_vectors, np.array([arg_vec]))
+            top1_correct = 0
+
+            for i in range(len(input_vectors[topic])):
+                if (i + 1) % (len(input_vectors[topic]) // 10) == 0:
+                    print(" > " + str(i) + ": " + str(top1_correct) + " " + str(top5_correct))
+                vector = input_vectors[topic][i]
+                vector_label = input_labels[topic][i]
+
+                # Comparando similaridad entre vectores promedios
+                results = cosine_similarity(class_vector[topic], np.array([vector]))
                 results = results.reshape(1, results.size)[0]
 
                 index = np.argsort(results)
                 index_most_similar = index[-1]
-                # print(mode_mean_vectors[index_most_similar][:5])
-                # print(modes[index_most_similar])
+                index_most_similar_top5 = index[-5:]
 
-                if key == modes[index_most_similar]:
+                # Calcular si se predijo correctamente
+                if vector_label == class_label[topic][index_most_similar]:
                     top1_correct += 1
 
-        print("result: " + str(top1_correct / total_test_size))
-        final_accuracy += top1_correct / total_test_size
-
-    # Calculamos el accuracy promedio
-    final_accuracy = final_accuracy / repetitions
-    print("Mean result: " + str(final_accuracy))
-
-    return final_accuracy
-
-###########################################################################################
-# Clasificacion a partir de redes neuronales
-###########################################################################################
+                # Calcular si la prediccion es correcta en los primeros 5
+                for id in index_most_similar_top5:
+                    if vector_label == class_label[topic][id]:
+                        top5_correct += 1
+                        break
 
 
+            # Calculo de accuracy para el topico
+            top1_acuraccy = top1_correct / total_evaluado
+            top5_acuraccy = top5_correct / total_evaluado
+
+            print("Resultados: " + str(top1_acuraccy) + " " + str(top5_acuraccy))
+
+            if topic not in acuraccy_results.keys():
+                acuraccy_results[topic] = []
+
+            acuraccy_results[topic] = [top1_acuraccy, top5_acuraccy]
+
+        return acuraccy_results

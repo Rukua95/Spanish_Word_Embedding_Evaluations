@@ -34,16 +34,18 @@ def get_wordvector(file, cant=None):
 class CrossMatchTestClass:
     _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
     _embeddings_size = None
+    _main_sample=100000
     _sub_sample_size = 200
     _repetitions = 500
 
     # Dataset y resultados
     _RESULT = Constant.RESULTS_FOLDER / "CrossMatch"
 
-    def __init__(self, cantidad=None, sub_sample_size=200, repetitions=500):
+    def __init__(self, cantidad=None, main_sample=100000, sub_sample_size=200, repetitions=500):
         print("Test de CrossMatch")
 
         self._embeddings_size = cantidad
+        self._main_sample = main_sample
         self._sub_sample_size = sub_sample_size
         self._repetitions = repetitions
         self._F_constant = self.getFConstant(sub_sample_size)
@@ -91,10 +93,10 @@ class CrossMatchTestClass:
     :return: valor de distancia entre dos vectores
     """
     def distance(self, embedding1, embedding2, word1, word2):
-        w_vector1 = embedding1.word_vec(word1, True)
-        w_vector2 = embedding2.word_vec(word2, True)
+        x = embedding1[word1]
+        y = embedding2[word2]
 
-        return w_vector1.dot(w_vector2) - 1
+        return 1 + np.dot(x,y) / (np.sqrt(np.dot(x,x)) * np.sqrt(np.dot(y,y)))
 
 
     """
@@ -111,7 +113,9 @@ class CrossMatchTestClass:
         for w, obj in embedding.vocab.items():
             word_list.append(w)
 
-        return word_list
+        sample = random.sample(word_list, self._main_sample)
+
+        return sample
 
 
     """
@@ -156,7 +160,7 @@ class CrossMatchTestClass:
 
             sum += ((2**c) / (math.factorial(c0) * math.factorial(c) * math.factorial(c2)))
 
-        return (sum * self._F_constant)
+        return (sum * self._F_constant), c1
 
 
     """
@@ -247,7 +251,6 @@ class CrossMatchTestClass:
             word_vector_name1 = embedding_name1.split('.')[0]
             word_vector1 = get_wordvector(embedding_name1, self._embeddings_size)
             word_list1 = self.getWordList(word_vector1)
-            word_vector1.init_sims()
 
             for j in range(len(self._embeddings_name_list)):
                 if j <= i:
@@ -257,11 +260,9 @@ class CrossMatchTestClass:
                 word_vector_name2 = embedding_name2.split('.')[0]
                 word_vector2 = get_wordvector(embedding_name2, self._embeddings_size)
                 word_list2 = self.getWordList(word_vector2)
-                word_vector2.init_sims()
 
                 sum = 0
 
-                #TODO: paralelizar esta accion
                 print("Testing " + word_vector_name1 + " y " + word_vector_name2)
                 for h in range(self._repetitions):
                     matrix = self.getDistanceMatrix(word_vector1, word_vector2, word_list1, word_list2)
@@ -269,8 +270,9 @@ class CrossMatchTestClass:
                     G = self.getGraph(matrix)
                     M = nx.max_weight_matching(G, True)
 
-                    p_value = self.getScore(M)
-                    print("p-value " + str(h) + ": " + str(p_value))
+                    p_value, c1 = self.getScore(M)
+                    if (h+1) % 10 == 0:
+                        print("p-value " + str(h) + ": " + str(p_value))
 
                     sum += p_value
 
