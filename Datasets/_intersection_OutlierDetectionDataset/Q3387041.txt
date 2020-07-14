@@ -1,0 +1,9 @@
+presión
+densidad
+concentración
+velocidad
+viscosidad
+
+estímulo
+nabla
+magma

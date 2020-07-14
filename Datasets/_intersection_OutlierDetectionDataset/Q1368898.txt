@@ -1,0 +1,11 @@
+Metegol
+dardos
+Mikado
+Fingerboard
+carrom
+petanca
+taba
+
+villancico
+ajedrez
+Othello

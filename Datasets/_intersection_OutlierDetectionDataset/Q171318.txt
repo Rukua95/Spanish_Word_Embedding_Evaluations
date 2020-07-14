@@ -1,0 +1,11 @@
+padre
+abuelo
+hermano
+tío
+hijo
+hija
+madre
+
+teísmo
+deísmo
+Lisu

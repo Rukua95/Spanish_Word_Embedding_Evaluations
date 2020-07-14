@@ -1,0 +1,8 @@
+Marsella
+Barcelona
+Venecia
+Gibraltar
+
+departamento
+país
+borough

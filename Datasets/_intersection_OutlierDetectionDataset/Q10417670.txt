@@ -1,0 +1,6 @@
+Kopete
+Irssi
+Pidgin
+
+Asterisk
+Yacc

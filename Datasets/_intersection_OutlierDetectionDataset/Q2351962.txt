@@ -1,0 +1,7 @@
+GIMP
+Paint
+Krita
+
+Kdenlive
+glibc
+SDL

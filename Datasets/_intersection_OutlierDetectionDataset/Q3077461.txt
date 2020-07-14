@@ -1,0 +1,9 @@
+Jungla
+manglar
+taiga
+grass
+bosque
+estepa
+
+Cerrado
+stack

@@ -1,0 +1,11 @@
+corchea
+negra
+semicorchea
+redonda
+cuadrada
+fusa
+blanca
+semifusa
+
+cantata
+ragtime

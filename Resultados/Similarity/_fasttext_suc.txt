@@ -1,0 +1,12 @@
+rg65_es.txt: 0.889236362449453
+not_found_pairs: 0
+not_found_words: 0
+size_data: 65
+SemEval17_es.txt: 0.7381762346689211
+not_found_pairs: 2
+not_found_words: 2
+size_data: 378
+all_data: 0.7591120893890994
+not_found_pairs: 2
+not_found_words: 2
+size_data: 443

@@ -1,0 +1,7 @@
+sed
+malware
+controladores
+KOffice
+
+norma
+Arcaico

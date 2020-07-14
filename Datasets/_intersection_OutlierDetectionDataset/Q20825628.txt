@@ -1,0 +1,7 @@
+R
+GNOME
+GIMP
+GCC
+Bash
+
+ransomware

@@ -1,0 +1,12 @@
+elfo
+ogro
+Asgard
+Squib
+orco
+vampiro
+Wraith
+
+centauro
+Dalek
+Enterprise
+Comarca

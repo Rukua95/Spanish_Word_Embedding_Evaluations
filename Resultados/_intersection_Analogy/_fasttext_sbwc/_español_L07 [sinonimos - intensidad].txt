@@ -1,0 +1,8 @@
+3CosMul_Top1 0.23510204081632652
+3CosMul_Top5 0.46816326530612246
+3CosAdd_Top1 0.0
+3CosAdd_Top5 0.0
+cos 0.0
+euc 0.0
+%oov_tuplas 0.0
+%oov_elements 0.0

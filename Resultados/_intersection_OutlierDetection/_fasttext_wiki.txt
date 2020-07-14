@@ -1,0 +1,5 @@
+accuraccy 0.840976788204822
+OPP 0.6359832635983264
+%_main_oov 0.0
+%_outlier_oov 0.0
+omited sets 0

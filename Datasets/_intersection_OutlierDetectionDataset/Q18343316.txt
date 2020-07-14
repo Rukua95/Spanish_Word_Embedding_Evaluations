@@ -1,0 +1,10 @@
+sed
+vi
+cat
+awk
+grep
+mv
+chmod
+
+Netstat
+AVG
