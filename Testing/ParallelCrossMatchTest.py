@@ -37,18 +37,20 @@ def get_wordvector(file, cant=None):
 class CrossMatchTestClass:
     _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
     _embeddings_size = None
+    _main_sample = 100000
     _sub_sample_size = 200
     _repetitions = 500
 
     # Dataset y resultados
     _RESULT = Constant.RESULTS_FOLDER / "CrossMatch"
 
-    def __init__(self, cantidad=None, sub_sample_size=200, repetitions=500):
+    def __init__(self, cantidad=None, main_sample=100000, sub_sample_size=200, repetitions=500):
         print("Test de CrossMatch (paralelo)")
 
         self._crossMatch = CrossMatchTest.CrossMatchTestClass(cantidad, sub_sample_size, repetitions)
 
         self._embeddings_size = cantidad
+        self._main_sample = main_sample
         self._sub_sample_size = sub_sample_size
         self._repetitions = repetitions
 
@@ -70,7 +72,6 @@ class CrossMatchTestClass:
             word_vector_name1 = embedding_name1.split('.')[0]
             word_vector1 = get_wordvector(embedding_name1, self._embeddings_size)
             word_list1 = self._crossMatch.getWordList(word_vector1)
-            word_vector1.init_sims()
 
             for j in range(len(self._embeddings_name_list)):
                 if j <= i:
@@ -80,7 +81,6 @@ class CrossMatchTestClass:
                 word_vector_name2 = embedding_name2.split('.')[0]
                 word_vector2 = get_wordvector(embedding_name2, self._embeddings_size)
                 word_list2 = self._crossMatch.getWordList(word_vector2)
-                word_vector2.init_sims()
 
                 sum = 0
 
@@ -88,22 +88,28 @@ class CrossMatchTestClass:
                 print("Testing en paralelo de" + word_vector_name1 + " y " + word_vector_name2)
                 input_G = []
                 output_M = []
+                print(">>> Getting graphs")
                 for h in range(self._repetitions):
+                    #print("matrix", h)
                     matrix = self._crossMatch.getDistanceMatrix(word_vector1, word_vector2, word_list1, word_list2)
+                    #for l in matrix:
+                    #    print(l)
 
                     G = self._crossMatch.getGraph(matrix)
                     input_G.append(G)
 
+                print(">>> Empezando procesos en paralelo")
                 with Pool(4) as p:
                     func = partial(nx.max_weight_matching, maxcardinality=True)
                     output_M = p.map(func, input_G)
+                print(">>> Terminando procesos en paralelo")
 
                 for h in range(len(output_M)):
                     M = output_M[h]
 
-                    p_value = self._crossMatch.getScore(M)
-                    if (h+1) % (len(output_M) // 10) == 0:
-                        print("p-value " + str(h) + ": " + str(p_value))
+                    p_value, c1 = self._crossMatch.getScore(M)
+                    if (h+1) % 10 == 0:
+                        print("p-value " + str(h) + ": " + str(p_value), "c1 =", c1)
 
                     sum += p_value
 

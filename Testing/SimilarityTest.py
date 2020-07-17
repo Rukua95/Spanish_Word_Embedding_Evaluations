@@ -60,13 +60,24 @@ class SimilarityTestClass:
     def get_spearman_rho(self, embedding, word_pairs):
         not_found_pairs = 0
         not_found_words = 0
+        repeated_pairs = 0
+
         not_found_list = []
 
         pred = []
         gold = []
+        reg = []
         for word1, word2, similarity in word_pairs:
             w1 = word1 in embedding
             w2 = word2 in embedding
+
+            aux = [word1, word2]
+            aux.sort()
+            if aux in reg:
+                repeated_pairs += 1
+                continue
+            else:
+                reg.append(aux)
 
             u = np.array([])
             if not w1:
@@ -100,6 +111,7 @@ class SimilarityTestClass:
             gold.append(similarity)
             pred.append(score)
 
+        print("    Pares repetidos:", repeated_pairs)
         print("    Not found words: " + str(not_found_words))
         print("    ", end='')
         print(not_found_list)
@@ -305,24 +317,11 @@ class SimilarityTestClass:
                     "size_data": len(word_pairs),
                 })
 
-                print("    > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
+                print("    > Cantidad de pares con palabras no encontradas: " + str(not_found_pairs) + "\n\n")
 
-            # Test en conjunto
-            print(">>> Empezando test en conjunto")
-
-            coeff, found, not_found_pairs, not_found_words = self.get_spearman_rho(word_vector, all_word_pairs)
-            scores.append({
-                "all_data": coeff,
-                "not_found_pairs": not_found_pairs,
-                "not_found_words": not_found_words,
-                "size_data": len(all_word_pairs),
-            })
-
-            print("    > Cantidad de pares no procesados: " + str(not_found_pairs) + "\n\n")
 
             # Guardando resultados
             self.saveResults(word_vector_name, scores)
-            results[word_vector_name] = scores
 
             print(">>> Resultados")
             for tuple in scores:
