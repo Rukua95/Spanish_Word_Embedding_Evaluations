@@ -1,13 +1,12 @@
 from gensim.models.keyedvectors import KeyedVectors
+from scipy.stats import spearmanr, kendalltau, pearsonr
+
+import numpy as np
 
 import shutil
 import os
 import io
-import numpy as np
-
 import Constant
-
-from scipy.stats import spearmanr
 
 
 # Path a carpeta principal
@@ -27,15 +26,15 @@ def get_wordvector(file, cant=None):
 
 class SimilarityTestClass:
     _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
-    _embeddings_size = None
-    _lower = True
-    _use_intersect_dataset = False
     _oov_word = {}
 
     # Dataset y resultados
     _DATASET = Constant.DATA_FOLDER / "SimilarityDataset"
+
+    _INTERSECT_DATASET = Constant.DATA_FOLDER / "_intersection_SimilarityDataset"
+    _ORIGINAL_DATASET = Constant.DATA_FOLDER / "SimilarityDataset"
+
     _RESULT = Constant.RESULTS_FOLDER / "Similarity"
-    _TEMP_RESULT = Constant.TEMP_RESULT_FOLDER / "Similarity"
 
     def __init__(self, cantidad=None, lower=True, use_intersect_dataset=False):
         print("Test de Similaridad")
@@ -44,12 +43,20 @@ class SimilarityTestClass:
         self._lower = lower
         self._use_intersect_dataset = use_intersect_dataset
 
+        if self._use_intersect_dataset:
+            self._DATASET = self._INTERSECT_DATASET
+            self._RESULT = Constant.RESULTS_FOLDER / "_intersection_Similarity"
+
+        else:
+            self._DATASET = self._ORIGINAL_DATASET
+            self._RESULT = Constant.RESULTS_FOLDER / "Similarity"
+
     ###########################################################################################
-    # METRICA
+    # EVALUACION
     ###########################################################################################
 
     """
-    Obtencion de correlacion spearman rho a partir de pares de palabras y puntaje de similaridad
+    Obtencion de correlacion Pearson r, Spearman rho y Kendall tau a partir de pares de palabras y puntaje de similaridad
 
     :param embedding: lista de vectores de palabras
     :param word_pairs: lista de pares de palabras con su puntaje de similaridad
@@ -57,7 +64,7 @@ class SimilarityTestClass:
     :return: lista con correlacion sperman-rho, cantidad de pares evaluados, cantidad de pares no evaluados
              y cantidad de palabras no encontradas en el vocabulario
     """
-    def get_spearman_rho(self, embedding, word_pairs):
+    def evaluate(self, embedding, word_pairs):
         not_found_pairs = 0
         not_found_words = 0
         repeated_pairs = 0
@@ -116,35 +123,105 @@ class SimilarityTestClass:
         print("    ", end='')
         print(not_found_list)
 
-        return spearmanr(gold, pred).correlation, len(gold), not_found_pairs, not_found_words
+        # Lista de resultados
+        p_r = ["pearson", pearsonr(gold, pred)[0]]
+        s_rho = ["spearman", spearmanr(gold, pred)[0]]
+        k_tau = ["kendall", kendalltau(gold, pred)[0]]
+
+        res = [s_rho, k_tau, p_r]
+
+        return res, not_found_pairs, not_found_words
+
+    """
+    Evalua un word embedding especifico y guarda el resultado en carpeta de resultados
+    
+    :param word_vector_name: nombre de word embedding
+    :param word_vector: word embedding a evaluar
+    """
+    def evaluate_word_vector(self, word_vector_name, word_vector):
+        # Obtencion de nombre de archivos de test
+        test_file_list = self.getTestFiles()
+        scores = []
+
+        # Test en archivos individuales
+        print(">>> Test individuales")
+        for test_file in test_file_list:
+            word_pairs = self.getWordPairs(test_file, self._lower)
+
+            # Evaluamos embeddings con dataset especifico
+            coeffs, not_found_pairs, not_found_words = self.evaluate(word_vector, word_pairs)
+
+            res = [[test_file]]
+            res = res + coeffs + [["not_found_pairs", not_found_pairs],
+                                  ["not_found_words", not_found_words],
+                                  ["size_data", len(word_pairs), ]]
+            scores.append(res)
+
+            print("    > Cantidad de pares con palabras no encontradas: " + str(not_found_pairs) + "\n\n")
+
+        # Guardando resultados
+        self.saveResults(word_vector_name, scores)
+
+        print(">>> Resultados")
+        for tuple in scores:
+            print(tuple)
+
+        del word_vector
 
 
     ###########################################################################################
     # MANEJO DE ARCHIVOS Y DATASET
     ###########################################################################################
 
+    """
+    Metodo para eliminar dataset obtenido a travez de intersectar vocabulario de embeddings
+    """
     def resetIntersectDataset(self):
         print("Eliminando archivos en carpeta de interseccion de dataset")
-        intersect_dataset_path = Constant.DATA_FOLDER / "_intersection_SimilarityDataset"
+        intersect_dataset_path = self._INTERSECT_DATASET
         if intersect_dataset_path.exists():
             shutil.rmtree(intersect_dataset_path)
 
+
+    """
+    Metodo que crea dataset con la interseccion de vocabulario de los embeddings en carpeta
+    """
+    def createIntersectDataset(self):
+        print("Obteniendo interseccion de datasets")
+
+        for embedding_name in self._embeddings_name_list:
+            word_vector = get_wordvector(embedding_name, self._embeddings_size)
+            state = self.intersectDataset(word_vector)
+
+            if not state:
+                raise Exception("Interseccion vacia de embeddings, no se puede continuar con la evaluacion")
+
+        print("Nuevo dataset en:\n ", str(self._INTERSECT_DATASET))
+
+
+    """
+    Metodo que eliminas palabras fuera del vocabulario del word embeddings dado
+    
+    :param word_vector: word embedding
+    """
     def intersectDataset(self, word_vector):
         print("Intersectando datasets...")
-        next_dataset_path = Constant.DATA_FOLDER / "_intersection_SimilarityDataset"
+        next_dataset_path = self._INTERSECT_DATASET
         deleted_files = 0
 
         # Verificar que existe carpeta para guardar nuevo dataset
         if not next_dataset_path.exists():
             os.makedirs(next_dataset_path)
 
-        # Verificar si ya existen datasets intersectados
+        # Verificar si hay datasets ya intersectados
         print(" > Revisando si existe interseccion previa")
-        if len(os.listdir(next_dataset_path)) == 0:
-            print(" > No hay interseccion previa, copiando dataset original")
-            for file_name in os.listdir(self._DATASET):
-                origin_file = self._DATASET / file_name
+        for file_name in os.listdir(self._ORIGINAL_DATASET):
+            if file_name in os.listdir(next_dataset_path):
+                print("   > ", file_name, " ya ha sido intersectado anteriormente")
+            else:
+                origin_file = self._ORIGINAL_DATASET / file_name
                 shutil.copy(origin_file, next_dataset_path)
+                print("   > ", file_name, " no ha sido intersectado anteriormente, copiando")
 
         # Revisar cada archivo dentro de la carpeta de dataset
         print(" > Revision de archivos en dataset")
@@ -160,6 +237,12 @@ class SimilarityTestClass:
                 for line in f:
                     tupla = line.lower().split()
 
+                    # Revisar cantidad de palabras en tupla
+                    if len(tupla) != 3:
+                        deleted_element += 1
+                        continue
+
+                    # Revisar que todas las palabras estan en el vocabulario
                     if tupla[0] not in word_vector or tupla[1] not in word_vector or len(tupla) != 3:
                         deleted_element += 1
                         continue
@@ -233,11 +316,6 @@ class SimilarityTestClass:
         return word_pairs
 
 
-    ###########################################################################################
-    # GUARDAR RESULTADOS
-    ###########################################################################################
-
-
     """
     Guarda resultados del test de similaridad
     
@@ -254,81 +332,27 @@ class SimilarityTestClass:
         print(">>> Guardando resultados en:\n     " + str(result_path))
 
         with io.open(result_path, 'w', encoding='utf-8') as f:
-            for tuple in score:
-                for key in tuple.keys():
-                    f.write(key + ": " + str(tuple[key]) + "\n")
+            for res in score:
+                for data in res:
+                    for el in data:
+                        f.write(str(el) + " ")
+
+                    f.write("\n")
 
 
     ###########################################################################################
     # EVALUACION POR SIMILARITY
     ###########################################################################################
 
-
     """
-    Realizacion de test de similaridad
-    
-    :return: coeficiente de correlacion spearman rho, cantidad de palabras no encontradas y cantidad de pares no evaluados
+    Realizacion de test de similaridad para los embeddings registrados
     """
     def similarityTest(self):
-        results = {}
-
-        # Interseccion de datasets
-        if self._use_intersect_dataset:
-            print("Obteniendo interseccion de datasets")
-            for embedding_name in self._embeddings_name_list:
-                word_vector = get_wordvector(embedding_name, self._embeddings_size)
-                state = self.intersectDataset(word_vector)
-
-                if not state:
-                    raise Exception("Interseccion vacia de embeddings, no se puede continuar con la evaluacion")
-
-            self._DATASET = Constant.DATA_FOLDER / "_intersection_SimilarityDataset"
-            self._RESULT = Constant.RESULTS_FOLDER / "_intersection_Similarity"
-            print("Nuevo dataset en:\n " + str(self._DATASET))
-
-        else:
-            self._DATASET = Constant.DATA_FOLDER / "SimilarityDataset"
-            self._RESULT = Constant.RESULTS_FOLDER / "Similarity"
-
         # Realizacion de test por cada embedding
         print("\n>>> Inicio de test <<<\n")
         for embedding_name in self._embeddings_name_list:
             word_vector_name = embedding_name.split('.')[0]
             word_vector = get_wordvector(embedding_name, self._embeddings_size)
 
-
-            # Obtencion de nombre de archivos de test
-            test_file_list = self.getTestFiles()
-            all_word_pairs = []
-            scores = []
-
-
-            # Test en archivos individuales
-            print(">>> Test individuales")
-            for test_file in test_file_list:
-                word_pairs = self.getWordPairs(test_file, self._lower)
-                all_word_pairs = all_word_pairs + word_pairs
-
-                coeff, found, not_found_pairs, not_found_words = self.get_spearman_rho(word_vector, word_pairs)
-                scores.append({
-                    test_file: coeff,
-                    "not_found_pairs": not_found_pairs,
-                    "not_found_words": not_found_words,
-                    "size_data": len(word_pairs),
-                })
-
-                print("    > Cantidad de pares con palabras no encontradas: " + str(not_found_pairs) + "\n\n")
-
-
-            # Guardando resultados
-            self.saveResults(word_vector_name, scores)
-
-            print(">>> Resultados")
-            for tuple in scores:
-                print(tuple)
-
-            del word_vector
-
-        return results
-
-
+            # Evaluamos embeddings
+            self.evaluate_word_vector(word_vector_name, word_vector)
