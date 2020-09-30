@@ -24,6 +24,7 @@ def get_wordvector(file, cant=None):
 
     return word_vector
 
+
 class SimilarityTestClass:
     _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
     _oov_word = {}
@@ -82,35 +83,27 @@ class SimilarityTestClass:
             aux.sort()
             if aux in reg:
                 repeated_pairs += 1
+                print("Par repetido: ", word1, " ", word2)
                 continue
             else:
                 reg.append(aux)
 
             u = np.array([])
-            if not w1:
+            v = np.array([])
+            if not w1 or not w2:
                 not_found_pairs += 1
-                not_found_words += 1
-                not_found_list.append(word1)
-                if word1 not in self._oov_word.keys():
-                    self._oov_word[word1] = np.random.rand(embedding.vector_size)
+                not_found_words += (w1 + w2)
 
-                u = self._oov_word[word1]
+                if not w1:
+                    not_found_list.append(word1)
+
+                if not w2:
+                    not_found_list.append(word2)
+
+                continue
 
             else:
                 u = embedding[word1]
-
-            v = np.array([])
-            if not w2:
-                if w1:
-                    not_found_pairs += 1
-                not_found_words += 1
-                not_found_list.append(word2)
-                if word2 not in self._oov_word.keys():
-                    self._oov_word[word2] = np.random.rand(embedding.vector_size)
-
-                v = self._oov_word[word2]
-
-            else:
                 v = embedding[word2]
 
             # Calculo de similaridad coseno
@@ -128,7 +121,7 @@ class SimilarityTestClass:
         s_rho = ["spearman", spearmanr(gold, pred)[0]]
         k_tau = ["kendall", kendalltau(gold, pred)[0]]
 
-        res = [s_rho, k_tau, p_r]
+        res = [p_r, s_rho, k_tau]
 
         return res, not_found_pairs, not_found_words
 
@@ -249,13 +242,14 @@ class SimilarityTestClass:
 
                     lines.append(line)
 
+            # Eliminamos archivo que no aporta al analisis
             if len(lines) == 0:
                 deleted_files += 1
                 to_delete_files.append(file_path)
-                print(" > Archivo esta vacio, se procede a eliminar")
+                print("  > Archivo esta vacio, se procede a eliminar")
                 continue
 
-            # Escribir la nueva interseccion
+            # Escribir documento
             with io.open(file_path, 'w', encoding='utf-8') as f:
                 for line in lines:
                     f.write(line)
@@ -348,6 +342,10 @@ class SimilarityTestClass:
     Realizacion de test de similaridad para los embeddings registrados
     """
     def similarityTest(self):
+        # Creacion de dataset de interseccion, segun embedding en carpeta
+        if self._use_intersect_dataset:
+            self.createIntersectDataset()
+
         # Realizacion de test por cada embedding
         print("\n>>> Inicio de test <<<\n")
         for embedding_name in self._embeddings_name_list:

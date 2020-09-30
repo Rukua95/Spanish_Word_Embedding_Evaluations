@@ -32,13 +32,8 @@ def get_wordvector(file, cant=None):
     return word_vector
 
 class CrossMatchTestClass:
-    _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
-    _embeddings_size = None
-    _main_sample=100000
-    _sub_sample_size = 200
-    _repetitions = 500
 
-    # Dataset y resultados
+    # Resultados
     _RESULT = Constant.RESULTS_FOLDER / "CrossMatch"
 
     def __init__(self, cantidad=None, main_sample=100000, sub_sample_size=200, repetitions=500):
@@ -48,7 +43,9 @@ class CrossMatchTestClass:
         self._main_sample = main_sample
         self._sub_sample_size = sub_sample_size
         self._repetitions = repetitions
+
         self._F_constant = self.getFConstant(sub_sample_size)
+
 
     ###########################################################################################
     # PUNTUACION Y MATCHING BIPARTITO
@@ -243,43 +240,31 @@ class CrossMatchTestClass:
     
     :return: resultados de test de cross-matching asociado a los embeddings
     """
-    def crossMatchTest(self):
+    def crossMatchTest(self, word_embedding1, word_embedding_name1, word_embedding2, word_embedding_name2):
         results = {}
 
-        for i in range(len(self._embeddings_name_list)):
-            embedding_name1 = self._embeddings_name_list[i]
-            word_vector_name1 = embedding_name1.split('.')[0]
-            word_vector1 = get_wordvector(embedding_name1, self._embeddings_size)
-            word_list1 = self.getWordList(word_vector1)
+        word_list1 = self.getWordList(word_embedding1)
+        word_list2 = self.getWordList(word_embedding2)
 
-            for j in range(len(self._embeddings_name_list)):
-                if j <= i:
-                    continue
+        sum = 0
 
-                embedding_name2 = self._embeddings_name_list[j]
-                word_vector_name2 = embedding_name2.split('.')[0]
-                word_vector2 = get_wordvector(embedding_name2, self._embeddings_size)
-                word_list2 = self.getWordList(word_vector2)
+        print("Testing " + word_embedding_name1 + " y " + word_embedding_name2)
+        for h in range(self._repetitions):
+            matrix = self.getDistanceMatrix(word_embedding1, word_embedding2, word_list1, word_list2)
 
-                sum = 0
+            G = self.getGraph(matrix)
+            M = nx.max_weight_matching(G, True)
 
-                print("Testing " + word_vector_name1 + " y " + word_vector_name2)
-                for h in range(self._repetitions):
-                    matrix = self.getDistanceMatrix(word_vector1, word_vector2, word_list1, word_list2)
+            p_value, c1 = self.getScore(M)
+            if (h+1) % 10 == 0:
+                print("p-value " + str(h) + ": " + str(p_value))
 
-                    G = self.getGraph(matrix)
-                    M = nx.max_weight_matching(G, True)
+            sum += p_value
 
-                    p_value, c1 = self.getScore(M)
-                    if (h+1) % 10 == 0:
-                        print("p-value " + str(h) + ": " + str(p_value))
+        pair_result = sum / self._repetitions
+        results[word_embedding_name1 + "__" + word_embedding_name2] = pair_result
+        self.saveResult(word_embedding_name1, word_embedding_name2, pair_result)
 
-                    sum += p_value
-
-                pair_result = sum / self._repetitions
-                results[word_vector_name1 + "__" + word_vector_name2] = pair_result
-                self.saveResult(word_vector_name1, word_vector_name2, pair_result)
-
-                print("Result: " + str(pair_result), end='\n\n')
+        print("Result: " + str(pair_result), end='\n\n')
 
         return results

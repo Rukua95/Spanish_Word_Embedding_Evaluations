@@ -1,11 +1,10 @@
 from gensim.models.keyedvectors import KeyedVectors
-from operator import add
+
+import numpy as np
 
 import shutil
 import os
 import io
-import numpy as np
-
 import Constant
 
 # Path a carpeta principal
@@ -23,65 +22,58 @@ def get_wordvector(file, cant=None):
 
     return word_vector
 
+# Clase para test de analogias
 class AnalogyTestClass:
     _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
-    _embeddings_size = None
-    _lower = True
-    _use_intersect_dataset = False
     _oov_word = []
 
-    _all_score = False
-    _all_combination = False
-
-    # Archivos que no se pueden usar para relizar test en ambas direcciones de la relacion.
-    RESTRICTED_FILES = [
-        "_español_E01 [pais - capital].txt",
-        "_español_E02 [pais - idioma].txt",
-        "_español_E04 [nombre - nacionalidad].txt",
-        "_español_E05 [nombre - ocupacion].txt",
-        "_español_E11 [ciudad_Chile - provincia_Chile].txt",
-        "_español_E12 [ciudad_EEUU - estado_EEUU].txt",
-        "_español_L07 [sinonimos - intensidad].txt",
-        "_español_L08 [sinonimos - exacto].txt",
-        "_español_L09 [antonimos - grado].txt",
-        "_español_L10 [antonimos - binario].txt",
+    # "3CosMul" "3CosAdd" "SpaceAnalogy"
+    _scores_to_get = [
+        "3CosMul",
+        "SpaceAnalogy",
     ]
 
     # Dataset y resultados
     _DATASET = Constant.DATA_FOLDER / "AnalogyDataset"
-    _RESULT = Constant.RESULTS_FOLDER / "Analogy"
-    # TODO: crear una carpeta de resultados temporales en la carpeta de resultados
-    _TEMP_RESULT = Constant.TEMP_RESULT_FOLDER / "Analogy"
 
-    def __init__(self, cantidad=None, lower=True, use_intersect_dataset=False, all_score=False, all_combination=False):
+    _INTERSECT_DATASET = Constant.DATA_FOLDER / "_intersection_AnalogyDataset"
+    _ORIGINAL_DATASET = Constant.DATA_FOLDER / "AnalogyDataset"
+
+    _RESULT = Constant.RESULTS_FOLDER / "Analogy"
+
+    """
+    Inicializacion de clase.
+    
+    :param vocab_size: tamaño de vocabulario a usar
+    :param use_intersect_dataset: setting para utilizar la interseccion de los dataset de embeddings
+    """
+    def __init__(self, vocab_size=None, use_intersect_dataset=False):
         print("Test de Analogias")
 
-        self._embeddings_size = cantidad
-        self._lower = lower
+        self._vocab_size = vocab_size
         self._use_intersect_dataset = use_intersect_dataset
 
-        self._all_score = all_score
-        self._all_combination = all_combination
+        if self._use_intersect_dataset:
+            self._DATASET = self._INTERSECT_DATASET
+            self._RESULT = Constant.RESULTS_FOLDER / "_intersection_Analogy"
 
-        if use_intersect_dataset:
-            self._TEMP_RESULT = Constant.TEMP_RESULT_FOLDER / "_intersection_Analogy"
+        else:
+            self._DATASET = self._ORIGINAL_DATASET
+            self._RESULT = Constant.RESULTS_FOLDER / "Analogy"
 
     ###########################################################################################
     # METRICAS
     ###########################################################################################
 
-
     """
-    Retorna 1 o 0 si se logra determinar la palabra d, dentro de relacion a:b = c:d
-    utilizando 3CosMul como funcion de similaridad
+    Utilizando 3CosMul, encuentra en top1 y top5 la palabra d, utilizando palabras a, b, c,
     
     :param embedding: embeddings
     :param p1: dentro de la relacion, palabras que pueden ser a
     :param p2: dentro de la relacion, palabras que pueden ser b
     :param q1: dentro de la relacion, palabras que pueden ser c
     :param q2: dentro de la relacion, palabras que pueden ser d
-    
-    :return: 1 o 0, dependiendo si se deduce alguna palabra d 
+    :return: 1 o 0, dependiendo si se encontro d en top1 y top5
     """
     def getCoseneSimilarCosmul(self, embedding, p1, p2, q1, q2):
         ans = [0, 0]
@@ -101,23 +93,18 @@ class AnalogyTestClass:
 
         return ans
 
-
     """
-    Retorna 1 o 0 si se logra determinar la palabra d, dentro de relacion a:b = c:d
-    utilizando 3CosAdd como funcion de similaridad
+    Utilizando 3CosAdd, encuentra en top1 y top5 la palabra d, utilizando palabras a, b, c,
     
     :param embedding: embeddings
     :param p1: dentro de la relacion, palabras que pueden ser a
     :param p2: dentro de la relacion, palabras que pueden ser b
     :param q1: dentro de la relacion, palabras que pueden ser c
     :param q2: dentro de la relacion, palabras que pueden ser d
-    
-    :return: 1 o 0, dependiendo si se deduce alguna palabra d 
+    :return: 1 o 0, dependiendo si se encontro d en top1 y top5
     """
     def getCoseneSimilar(self, embedding, p1, p2, q1, q2):
-        return [0, 0]
-
-        """ans = [0, 0]
+        ans = [0, 0]
 
         for a in p1:
             for b in p2:
@@ -132,7 +119,7 @@ class AnalogyTestClass:
                     if len(list(set(res5).intersection(q2))) > 0:
                         ans[1] = 1
 
-        return ans"""
+        return ans
 
 
     """
@@ -143,7 +130,6 @@ class AnalogyTestClass:
     :param p2: dentro de la relacion, palabras que pueden ser b
     :param q1: dentro de la relacion, palabras que pueden ser c
     :param q2: dentro de la relacion, palabras que pueden ser d
-    
     :return: valor de distancia conseno entre vectores (b-a) y (d-c)
     """
     def getCos(self, embedding, p1, p2, q1, q2):
@@ -200,27 +186,51 @@ class AnalogyTestClass:
     # MANEJO DE ARCHIVOS Y DATASET
     ###########################################################################################
 
+    """
+    Funcion que borra datasets para realizar test, el cual usa palabras de la interseccion de los vocabularios.
+    """
     def resetIntersectDataset(self):
-        intersect_dataset_path = Constant.DATA_FOLDER / "_intersection_AnalogyDataset"
+        print("Reiniciando dataset")
+        intersect_dataset_path = self._INTERSECT_DATASET
         if intersect_dataset_path.exists():
             shutil.rmtree(intersect_dataset_path)
 
+
+    def createIntersectDataset(self):
+        print("Obteniendo interseccion de datasets")
+        for embedding_name in self._embeddings_name_list:
+            word_vector = get_wordvector(embedding_name, self._vocab_size)
+            state = self.intersectDataset(word_vector)
+
+            if not state:
+                raise Exception("Interseccion vacia de embeddings, no se puede continuar con la evaluacion")
+
+        print("Nuevo dataset en:\n ", str(self._DATASET))
+
+
+    """
+    Fucion que toma el vocabulario de un embedding y lo intersecta con el vocabulario en los dataset para el test
+    :param word_vector: embedding
+    :return: retorna un booleano, si hay datasets para evaluar
+    """
     def intersectDataset(self, word_vector):
         print("Intersectando datasets...")
-        next_dataset_path = Constant.DATA_FOLDER / "_intersection_AnalogyDataset"
+        next_dataset_path = self._INTERSECT_DATASET # Constant.DATA_FOLDER / "_intersection_AnalogyDataset"
         deleted_files = 0
 
         # Verificar que existe carpeta para guardar nuevo dataset
         if not next_dataset_path.exists():
             os.makedirs(next_dataset_path)
 
-        # Verificar si ya existen datasets intersectados
+        # Verificar si hay datasets ya intersectados
         print(" > Revisando si existe interseccion previa")
-        if len(os.listdir(next_dataset_path)) == 0:
-            print(" > No hay interseccion previa, copiando dataset original")
-            for file_name in os.listdir(self._DATASET):
-                origin_file = self._DATASET / file_name
+        for file_name in os.listdir(self._ORIGINAL_DATASET):
+            if file_name in os.listdir(next_dataset_path):
+                print("   > ", file_name, " ya ha sido intersectado anteriormente")
+            else:
+                origin_file = self._ORIGINAL_DATASET / file_name
                 shutil.copy(origin_file, next_dataset_path)
+                print("   > ", file_name, " no ha sido intersectado anteriormente, copiando")
 
         # Revisar cada archivo dentro de la carpeta de dataset
         print(" > Revision de archivos en dataset")
@@ -231,6 +241,9 @@ class AnalogyTestClass:
             deleted_element = 0
             lines = []
 
+            if "4tupla" in str(file_path):
+                print("   Revisando archivo de tipo 4-tupla")
+
             # Revisar el dataset intersectado que llevamos hasta el momento
             with io.open(file_path, 'r') as f:
                 for line in f:
@@ -238,8 +251,15 @@ class AnalogyTestClass:
 
                     p1 = tupla[0].split('/')
                     p2 = tupla[1].split('/')
+
+                    # Caso de archivo con 4-tuplas
+                    p3 = tupla[2].split('/') if "4tupla" in str(file_path) else []
+                    p4 = tupla[3].split('/') if "4tupla" in str(file_path) else []
+
                     q1 = []
                     q2 = []
+                    q3 = []
+                    q4 = []
 
                     for p in p1:
                         if p in word_vector:
@@ -249,13 +269,31 @@ class AnalogyTestClass:
                         if p in word_vector:
                             q2.append(p)
 
+                    for p in p3:
+                        if p in word_vector:
+                            q3.append(p)
+
+                    for p in p4:
+                        if p in word_vector:
+                            q4.append(p)
+
+                    # Verificar que todas la palabras en las analogias estan presentes
                     if len(q1) == 0 or len(q2) == 0:
                         deleted_element += 1
                         continue
 
+                    if ("4tupla" in str(file_path)) and (len(q3) == 0 or len(q4) == 0):
+                        deleted_element += 1
+                        continue
+
+                    # Transforma tupla completa a string
                     line = '/'.join(q1) + "\t" + '/'.join(q2) + "\n"
+                    if "4tupla" in str(file_path):
+                        line = '/'.join(q1) + "\t" + '/'.join(q2) + "\t" + '/'.join(q3) + "\t" + '/'.join(q4) + "\n"
+
                     lines.append(line)
 
+            # Caso en que el archivo queda vacio
             if len(lines) == 0:
                 deleted_files += 1
                 to_delete_files.append(file_path)
@@ -279,7 +317,6 @@ class AnalogyTestClass:
 
     """
     Obtencion de nombre de los distintos archivos de test de analogias
-    
     :return: lista con path completo de los distintos archivos con pares de palabras para test de analogias
     """
     def getTestFiles(self):
@@ -297,20 +334,17 @@ class AnalogyTestClass:
 
 
     """
-    Obtencion de path completo hacia los dintintos archivos de test de analogias que no hayan sido evaluados aun
-    
-    :param test_files: nombre de los archivos que contienen los pares de palabras
+    Obtencion de path completo hacia los dintintos archivos de test de analogias que no han sido evaluados
     :param embedding_name: nombre del embedding que se va a evaluar
-    
-    :return: path completo a los archivos con pares de palabras
+    :return: lista de archivos a usar en evaluacion
     """
     def getUntestedFiles(self, embedding_name):
         print(">>> Buscando archivos sin testear")
         test_files = self.getTestFiles()
-        temp_result_path = self._RESULT / embedding_name
+        result_path = self._RESULT / embedding_name
 
         # Revisar que existe la carpeta de resultados parciales
-        if not temp_result_path.exists():
+        if not result_path.exists():
             return test_files
 
         # Eliminar archivos que ya han sido utilizados en evaluacion
@@ -319,7 +353,7 @@ class AnalogyTestClass:
         for file in test_files:
             print("   ", str(file))
             # Path hacia el resultado del test asociado al archivo file
-            temp_result_file_path = temp_result_path / file.name
+            temp_result_file_path = result_path / file.name
 
             if not temp_result_file_path.exists():
                 test_files_list.append(file)
@@ -331,10 +365,8 @@ class AnalogyTestClass:
 
     """
     Obtencion de los pares de palabras (a:b) presentes en un archivo de test
-    
     :param test_file_path: path hacia archivo con pares de palabras
     :param lower: determina si las palabras solo se consideran en minusculas
-    
     :return: lista de pares de palabras 
     """
     def getAnalogyPairs(self, test_file_path):
@@ -354,38 +386,33 @@ class AnalogyTestClass:
 
 
     '''
-    Eliminacion de palabras oov
-    
+    Eliminacion de palabras oov dentro de una tupla
     :param embedding: lista con vectores de palabras
     :param p1: lista de palabras que representa el elemento a en analogia
     :param p2: lista de palabras que representa el elemento b en analogia
     :param q1: lista de palabras que representa el elemento c en analogia
     :param q2: lista de palabras que representa el elemento d en analogia
-    
     :return: tupla con lista de palabras, cada lista representa un elemento en la analogia
     '''
     def delete_oov(self, embedding, p1, p2, q1, q2):
         number_of_oov_element = 0
+        new_tuple = []
 
         for tuple in [p1, p2, q1, q2]:
-            oov_in_tuple = 0
+            r = []
+
             for word in tuple:
                 if word not in embedding:
-                    self._oov_word.append(word)
-                    embedding.add(
-                        word,
-                        np.random.rand(embedding.vector_size)
-                    )
+                    continue
 
-                if word in self._oov_word:
-                    oov_in_tuple += 1
+                r.append(word)
 
-            if oov_in_tuple == len(tuple):
+            if len(r) == 0:
                 number_of_oov_element += 1
 
-        del embedding.vectors_norm
+            new_tuple.append(r)
 
-        return number_of_oov_element
+        return number_of_oov_element, new_tuple
 
 
     ###########################################################################################
@@ -416,9 +443,12 @@ class AnalogyTestClass:
         temp_result_file = temp_result_embedding / test_file_name
 
         with io.open(temp_result_file, 'w') as f:
-            for key in results_list.keys():
-                print(key + ": " + str(results_list[key]))
-                f.write(key + " " + str(results_list[key]) + "\n")
+            for res in results_list:
+                print(res)
+                for word in res:
+                    f.write(str(word) + " ")
+
+                f.write("\n")
 
 
     """
@@ -465,110 +495,201 @@ class AnalogyTestClass:
     # EVALUACION POR ANALOGIAS
     ###########################################################################################
 
+    def CosMulResults(self, file, pair_list, word_vector):
+        if "4tupla" not in str(file):
+            tuple_list = []
 
-    """
-    Entrega resultados del test de analogias, utilizando diversas metricas.
-    
-    :param embedding: 
-    :param p1: lista de palabras que representa el elemento a en analogia
-    :param p2: lista de palabras que representa el elemento b en analogia
-    :param q1: lista de palabras que representa el elemento c en analogia
-    :param q2: lista de palabras que representa el elemento d en analogia
-    :param all_score: define si se realizan todas las metricas o solo similaridad coseno
-    :param all_combination: define si se evaluaran todas las combinaciones posibles de relaciones (3CosAdd, 3CosMul, PairDir)
-    
-    :return: par de elementos, el primer elemento es una lista con las distintas metricas con las cuales se evalua la analogia,
-             el segundo elemento determina si la analogia no fue evaluada, producto de palabras oov
-    """
-    def evaluateAnalogy(self, embedding, test_file_name, p1, p2, q1, q2):
-        # Inicializando variables de resultados
-        results = {}
+            for i in range(len(pair_list)):
+                for j in range(len(pair_list)):
+                    if(i == j):
+                        continue
 
-        # Evaluacion con imilaridad 3CosAdd
-        results["3CosMul"] = self.getCoseneSimilarCosmul(embedding, p1, p2, q1, q2)
+                    p1 = pair_list[i][0]
+                    p2 = pair_list[i][1]
+                    q1 = pair_list[j][0]
+                    q2 = pair_list[j][1]
 
-        if self._all_combination:
-            # Algunas relaciones pueden no ser biyectivas
-            if not test_file_name in self.RESTRICTED_FILES:
-                results["3CosMul"] = list(map(add, self.getCoseneSimilarCosmul(embedding, p2, p1, q2, q1), results["3CosMul"]))
+                    tuple_list.append([p1, p2, q1, q2])
 
-        if self._all_score:
-            # Similaridad 3CosMul
-            results["3CosAdd"] = self.getCoseneSimilar(embedding, p1, p2, q1, q2)
+            pair_list = tuple_list
 
-            if self._all_combination:
-                # Algunas relaciones pueden no ser biyectivas
-                if not test_file_name in self.RESTRICTED_FILES:
-                    results["3CosAdd"] = list(map(add, self.getCoseneSimilar(embedding, p2, p1, q2, q1), results["3CosAdd"]))
+        print(" > Cantidad de analogias a evaluar: ", str(len(pair_list)))
 
-            # Puntaje coseno
-            results["cos"] = self.getCos(embedding, p1, p2, q1, q2)
+        oov_tuples = 0
+        analogy_count = 0
+        top1_count = 0
+        top5_count = 0
 
-            # Puntaje euclidiano
-            results["euc"] = self.getEuc(embedding, p1, p2, q1, q2)
+        for tupla in pair_list:
+            p1 = tupla[0].strip().split('/')
+            p2 = tupla[1].strip().split('/')
+            q1 = tupla[2].strip().split('/')
+            q2 = tupla[3].strip().split('/')
 
-        return results
+            number_of_oov_elements, new_tuple = self.delete_oov(word_vector, p1, p2, q1, q2)
+            p1 = new_tuple[0]
+            p2 = new_tuple[1]
+            q1 = new_tuple[2]
+            q2 = new_tuple[3]
+
+            if number_of_oov_elements > 0:
+                oov_tuples += 1
+                continue
+
+            analogy_count += 1
+
+            top1, top5 = self.getCoseneSimilarCosmul(word_vector, p1, p2, q1, q2)
+            top1_count += top1
+            top5_count += top5
+
+        top1_res = top1_count / analogy_count if analogy_count > 0 else 0
+        top5_res = top5_count / analogy_count if analogy_count > 0 else 0
+
+        return [["top1_3CosMul", top1_res], ["top5_3CosMul", top5_res]]
+
+
+    def CosAddResults(self, file, pair_list, word_vector):
+        if "4tupla" not in str(file):
+            tuple_list = []
+
+            for i in range(len(pair_list)):
+                for j in range(len(pair_list)):
+                    if(i == j):
+                        continue
+
+                    p1 = pair_list[i][0]
+                    p2 = pair_list[i][1]
+                    q1 = pair_list[j][0]
+                    q2 = pair_list[j][1]
+
+                    tuple_list.append([p1, p2, q1, q2])
+
+            pair_list = tuple_list
+
+        print(" > Cantidad de analogias a evaluar: ", str(len(pair_list)))
+
+        oov_tuples = 0
+        analogy_count = 0
+        top1_count = 0
+        top5_count = 0
+
+        for tupla in pair_list:
+            p1 = tupla[0].strip().split('/')
+            p2 = tupla[1].strip().split('/')
+            q1 = tupla[2].strip().split('/')
+            q2 = tupla[3].strip().split('/')
+
+            number_of_oov_elements, new_tuple = self.delete_oov(word_vector, p1, p2, q1, q2)
+            p1 = new_tuple[0]
+            p2 = new_tuple[1]
+            q1 = new_tuple[2]
+            q2 = new_tuple[3]
+
+            if number_of_oov_elements > 0:
+                oov_tuples += 1
+                continue
+
+            analogy_count += 1
+
+            top1, top5 = self.getCoseneSimilar(word_vector, p1, p2, q1, q2)
+            top1_count += top1
+            top5_count += top5
+
+        top1_res = top1_count / analogy_count if analogy_count > 0 else 0
+        top5_res = top5_count / analogy_count if analogy_count > 0 else 0
+
+        return [["top1_3CosAdd", top1_res], ["top5_3CosAdd", top5_res]]
+
+    def AnalogySpaceResults(self, file, pair_list, word_vector):
+        if "4tupla" not in str(file):
+            tuple_list = []
+
+            for i in range(len(pair_list)):
+                for j in range(len(pair_list)):
+                    if j <= i:
+                        continue
+
+                    p1 = pair_list[i][0]
+                    p2 = pair_list[i][1]
+                    q1 = pair_list[j][0]
+                    q2 = pair_list[j][1]
+
+                    tuple_list.append([p1, p2, q1, q2])
+
+            pair_list = tuple_list
+
+        print(" > Cantidad de analogias a evaluar: ", str(len(pair_list)))
+
+        oov_tuples = 0
+        analogy_count = 0
+        cos_count = 0
+        euc_count = 0
+
+        for tupla in pair_list:
+            p1 = tupla[0].strip().split('/')
+            p2 = tupla[1].strip().split('/')
+            q1 = tupla[2].strip().split('/')
+            q2 = tupla[3].strip().split('/')
+
+            number_of_oov_elements, new_tuple = self.delete_oov(word_vector, p1, p2, q1, q2)
+            p1 = new_tuple[0]
+            p2 = new_tuple[1]
+            q1 = new_tuple[2]
+            q2 = new_tuple[3]
+
+            if number_of_oov_elements > 0:
+                oov_tuples += 1
+                continue
+
+            analogy_count += 1
+
+            res_cos = self.getCos(word_vector, p1, p2, q1, q2)
+            cos_count += res_cos
+
+            res_euc = self.getEuc(word_vector, p1, p2, q1, q2)
+            euc_count += res_euc
+
+        cos_res = cos_count / analogy_count if analogy_count > 0 else 0
+        euc_res = euc_count / analogy_count if analogy_count > 0 else 0
+
+        return [["Cos", cos_res], ["Euc", euc_res]]
+
+
+
+    def evaluate_word_vector(self, word_vector_name, word_vector):
+        # Obtencion de archivos que faltan por testear
+        test_file_list = self.getUntestedFiles(word_vector_name)
+        print("Untested files:")
+        for file in test_file_list:
+            print(">", file)
+
+        # Revisamos todos los archivos para realizar test
+        for file in test_file_list:
+            file_results = self.evaluateFile(file, word_vector)
+
+            # Guardamos los resultados de forma temporal
+            self.saveResults(word_vector_name, file.name, file_results)
+
 
 
     def evaluateFile(self, file, word_vector):
-        print(">>> Testing: ", end='')
-        print(file.name)
+        print(">>> Testing: ", file.name)
         pair_list = self.getAnalogyPairs(file)
 
-        # Inicializamos variables para guardar metricas obtenidas para el archivo de test
-        results = {
-            "3CosMul": [0, 0],
-            "3CosAdd": [0, 0],
-            "cos": 0,
-            "euc": 0,
-        }
+        res = []
+        if "3CosMul" in self._scores_to_get:
+            res_cosmul = self.CosMulResults(file, pair_list, word_vector)
+            res = res + res_cosmul
 
-        oov_tuples = 0
-        oov_elements = 0
+        if "3CosAdd" in self._scores_to_get:
+            res_cosadd = self.CosAddResults(file, pair_list, word_vector)
+            res = res + res_cosadd
 
-        # Evaluamos todas las 4-tuplas posibles a partir de todos los pares presentes en el archivo file
-        count = 0
-        for i in range(len(pair_list)):
-            for j in range(len(pair_list)):
-                if i == j:
-                    continue
+        if "SpaceAnalogy" in self._scores_to_get:
+            res_aspace = self.AnalogySpaceResults(file, pair_list, word_vector)
+            res = res + res_aspace
 
-                count += 1
-
-                # Generamos las 4-tuplas (p1, p2, q1, q2), donde "p1 es a p2 como q1 es aq2"
-                p = pair_list[i]
-                q = pair_list[j]
-
-                p1 = p[0].strip().split('/')
-                p2 = p[1].strip().split('/')
-                q1 = q[0].strip().split('/')
-                q2 = q[1].strip().split('/')
-
-                # Contamos palabras fuera del vocabulario
-                number_of_oov_elements = self.delete_oov(word_vector, p1, p2, q1, q2)
-                oov_tuples += 1 if number_of_oov_elements > 0 else 0
-                oov_elements += number_of_oov_elements
-
-                # Obtencion de resultados a partir de las metricas disponibles
-                result_tuple = self.evaluateAnalogy(word_vector, file.name, p1, p2, q1, q2)
-
-                # Separamos los resultados por:
-                # -> Similaridad AddCos
-                results["3CosMul"] = list(map(add, result_tuple["3CosMul"], results["3CosMul"]))
-
-                if len(result_tuple) > 1:
-                    # -> Similaridad CosMul
-                    results["3CosAdd"] = list(map(add, result_tuple["3CosAdd"], results["3CosAdd"]))
-
-                    # -> Puntajes definido por Che
-                    results["cos"] += result_tuple["cos"]
-                    results["euc"] += result_tuple["euc"]
-
-        print("count: " + str(count))
-        for key in results.keys():
-            print(results[key])
-
-        return [results, oov_tuples, oov_elements]
+        return res
 
 
     """
@@ -583,84 +704,15 @@ class AnalogyTestClass:
     :return: lista con los resultados, individuales de cada test, con las metricas disponibles
     """
     def analogyTest(self):
-        results = {}
-
         # Interseccion de datasets
         if self._use_intersect_dataset:
-            print("Obteniendo interseccion de datasets")
-            for embedding_name in self._embeddings_name_list:
-                word_vector = get_wordvector(embedding_name, self._embeddings_size)
-                state = self.intersectDataset(word_vector)
-
-                if not state:
-                    raise Exception("Interseccion vacia de embeddings, no se puede continuar con la evaluacion")
-
-            self._DATASET = Constant.DATA_FOLDER / "_intersection_AnalogyDataset"
-            self._RESULT = Constant.RESULTS_FOLDER / "_intersection_Analogy"
-            self._TEMP_RESULT = Constant.TEMP_RESULT_FOLDER / "_intersection_Analogy"
-
-        else:
-            self._DATASET = Constant.DATA_FOLDER / "AnalogyDataset"
-            self._RESULT = Constant.RESULTS_FOLDER / "Analogy"
-
+            self.createIntersectDataset()
 
         # Realizacion de test por cada embedding
         for embedding_name in self._embeddings_name_list:
             word_vector_name = embedding_name.split('.')[0]
+            word_vector = get_wordvector(embedding_name, self._vocab_size)
 
-            # Obtencion de archivos que faltan por testear
-            test_file_list = self.getUntestedFiles(word_vector_name)
-            print("Untested files:")
-            for file in test_file_list:
-                print(">", file)
+            self.evaluate_word_vector(word_vector_name, word_vector)
 
-            if len(test_file_list) > 0:
-                word_vector = get_wordvector(embedding_name, self._embeddings_size)
 
-            # Revisamos todos los archivos para realizar test
-            for file in test_file_list:
-                total_test_result = {}
-                pair_list = self.getAnalogyPairs(file)
-
-                count_multiply = 1
-                count_relations = len(pair_list) * (len(pair_list) - 1)
-
-                # En caso de evaluar todas las combinaciones, diferenciamos los test que tienen relaciones no biyectivas
-                if self._all_combination:
-                    if not file.name in self.RESTRICTED_FILES:
-                        count_multiply = 2
-
-                print("count_relation: " + str(count_relations * count_multiply))
-
-                file_results = self.evaluateFile(file, word_vector)
-
-                results = file_results[0]
-                oov_tuples = file_results[1]
-                oov_elements = file_results[2]
-
-                # Calculamos los resultados totales del test
-                # Similaridad
-                # TODO: arreglar nombre de llaves, cosAdd es ahora cosMul y viceversa
-                total_test_result["3CosMul_Top1"] = (results["3CosMul"][0] / (count_relations * count_multiply)) if count_relations > 0 else "Nan"
-                total_test_result["3CosMul_Top5"] = (results["3CosMul"][1] / (count_relations * count_multiply)) if count_relations > 0 else "Nan"
-
-                total_test_result["3CosAdd_Top1"] = (results["3CosAdd"][0] / (count_relations * count_multiply)) if count_relations > 0 else "Nan"
-                total_test_result["3CosAdd_Top5"] = (results["3CosAdd"][1] / (count_relations * count_multiply)) if count_relations > 0 else "Nan"
-
-                #total_test_result["PairDir_Top1"] = (similarity_total[2][0] / (count_relations * count_multiply)) if count_relations > 0 else "Nan"
-                #total_test_result["PairDir_Top5"] = (similarity_total[2][1] / (count_relations * count_multiply)) if count_relations > 0 else "Nan"
-
-                # Puntajes definido por Che
-                total_test_result["cos"] = (results["cos"] / count_relations) if count_relations > 0 else "Nan"
-                total_test_result["euc"] = (results["euc"] / count_relations) if count_relations > 0 else "Nan"
-
-                # Estadisticas de palabras/elementos oov
-                total_test_result["%oov_tuplas"] = (oov_tuples / count_relations) if count_relations > 0 else "Nan"
-                total_test_result["%oov_elements"] = oov_elements / (count_relations * count_multiply * (len(pair_list) - 1)) if count_relations > 0 else "Nan"
-
-                # Guardamos los resultados de forma temporal
-                self.saveResults(word_vector_name, file.name, total_test_result)
-
-            results[word_vector_name] = self.getAllResults(word_vector_name)
-
-        return results
