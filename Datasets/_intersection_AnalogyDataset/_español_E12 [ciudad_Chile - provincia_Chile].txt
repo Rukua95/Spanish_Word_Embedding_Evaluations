@@ -1,7 +1,0 @@
-linares	maule
-antofagasta	antofagasta
-molina	maule
-parral	maule
-cauquenes	maule
-maule	maule
-mejillones	antofagasta
