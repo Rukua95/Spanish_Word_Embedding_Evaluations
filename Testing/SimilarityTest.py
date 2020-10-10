@@ -9,9 +9,6 @@ import io
 import Constant
 
 
-# Path a carpeta principal
-MAIN_FOLDER = Constant.MAIN_FOLDER
-
 # Path a carpeta con los embeddings
 EMBEDDING_FOLDER = Constant.EMBEDDING_FOLDER
 
@@ -27,7 +24,6 @@ def get_wordvector(file, cant=None):
 
 class SimilarityTestClass:
     _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
-    _oov_word = {}
 
     # Dataset y resultados
     _DATASET = Constant.DATA_FOLDER / "SimilarityDataset"
@@ -125,42 +121,6 @@ class SimilarityTestClass:
 
         return res, not_found_pairs, not_found_words
 
-    """
-    Evalua un word embedding especifico y guarda el resultado en carpeta de resultados
-    
-    :param word_vector_name: nombre de word embedding
-    :param word_vector: word embedding a evaluar
-    """
-    def evaluate_word_vector(self, word_vector_name, word_vector):
-        # Obtencion de nombre de archivos de test
-        test_file_list = self.getTestFiles()
-        scores = []
-
-        # Test en archivos individuales
-        print(">>> Test individuales")
-        for test_file in test_file_list:
-            word_pairs = self.getWordPairs(test_file, self._lower)
-
-            # Evaluamos embeddings con dataset especifico
-            coeffs, not_found_pairs, not_found_words = self.evaluate(word_vector, word_pairs)
-
-            res = [[test_file]]
-            res = res + coeffs + [["not_found_pairs", not_found_pairs],
-                                  ["not_found_words", not_found_words],
-                                  ["size_data", len(word_pairs), ]]
-            scores.append(res)
-
-            print("    > Cantidad de pares con palabras no encontradas: " + str(not_found_pairs) + "\n\n")
-
-        # Guardando resultados
-        self.saveResults(word_vector_name, scores)
-
-        print(">>> Resultados")
-        for tuple in scores:
-            print(tuple)
-
-        del word_vector
-
 
     ###########################################################################################
     # MANEJO DE ARCHIVOS Y DATASET
@@ -177,7 +137,7 @@ class SimilarityTestClass:
 
 
     """
-    Metodo que crea dataset con la interseccion de vocabulario de los embeddings en carpeta
+    Metodo que crea dataset con la interseccion de vocabulario de los embeddings guardados
     """
     def createIntersectDataset(self):
         print("Obteniendo interseccion de datasets")
@@ -193,9 +153,9 @@ class SimilarityTestClass:
 
 
     """
-    Metodo que eliminas palabras fuera del vocabulario del word embeddings dado
+    Metodo que elimina palabras de los dataset, que esten fuera del vocabulario del word embeddings dado
     
-    :param word_vector: word embedding
+    :param word_vector: word embedding para comparar vocabulario
     """
     def intersectDataset(self, word_vector):
         print("Intersectando datasets...")
@@ -339,9 +299,47 @@ class SimilarityTestClass:
     ###########################################################################################
 
     """
-    Realizacion de test de similaridad para los embeddings registrados
+    Evalua un word embedding especifico y guarda el resultado en carpeta de resultados
+
+    :param word_vector_name: nombre de word embedding
+    :param word_vector: word embedding a evaluar
     """
-    def similarityTest(self):
+
+    def evaluateWordVector(self, word_vector_name, word_vector):
+        # Obtencion de nombre de archivos de test
+        test_file_list = self.getTestFiles()
+        scores = []
+
+        # Test en archivos individuales
+        print(">>> Test individuales")
+        for test_file in test_file_list:
+            word_pairs = self.getWordPairs(test_file, self._lower)
+
+            # Evaluamos embeddings con dataset especifico
+            coeffs, not_found_pairs, not_found_words = self.evaluate(word_vector, word_pairs)
+
+            res = [[test_file]]
+            res = res + coeffs + [["not_found_pairs", not_found_pairs],
+                                  ["not_found_words", not_found_words],
+                                  ["size_data", len(word_pairs), ]]
+            scores.append(res)
+
+            print("    > Cantidad de pares con palabras no encontradas: " + str(not_found_pairs) + "\n\n")
+
+        # Guardando resultados
+        self.saveResults(word_vector_name, scores)
+
+        print(">>> Resultados")
+        for tuple in scores:
+            print(tuple)
+
+        del word_vector
+
+
+    """
+    Evaluacion de word embeddings guardados en carpeta embedding.
+    """
+    def evaluateSavedEmbeddings(self):
         # Creacion de dataset de interseccion, segun embedding en carpeta
         if self._use_intersect_dataset:
             self.createIntersectDataset()
@@ -353,4 +351,4 @@ class SimilarityTestClass:
             word_vector = get_wordvector(embedding_name, self._embeddings_size)
 
             # Evaluamos embeddings
-            self.evaluate_word_vector(word_vector_name, word_vector)
+            self.evaluateWordVector(word_vector_name, word_vector)

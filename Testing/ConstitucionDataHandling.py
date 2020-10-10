@@ -1,26 +1,8 @@
+import numpy as np
+
 import csv
 import re
-
-
-import GPUtil
-
-import torch
-import torch.nn as nn
-
-from random import shuffle
-
-from sklearn.metrics import precision_recall_fscore_support
-from sklearn.metrics.pairwise import cosine_similarity
-
-from pytorchtools import EarlyStopping
-
-import ConstitucionUtil
-
-from gensim.models.keyedvectors import KeyedVectors
-
-import os
 import io
-import numpy as np
 
 import Constant
 
@@ -32,6 +14,7 @@ EMBEDDING_FOLDER = Constant.EMBEDDING_FOLDER
 
 _DATASET_FOLDER = Constant.DATA_FOLDER / "_Constitucion"
 _DATASET = _DATASET_FOLDER / "constitucion_data.csv"
+
 
 
 def getDataset():
@@ -48,99 +31,87 @@ def getDataset():
     return data, header
 
 
-def getMeanVector(phrase, embedding, omit_oov=False):
-    #print(phrase, end='\n > ')
-    sum_vec = [np.zeros(embedding.vector_size)]
-    phrase = re.sub('[^0-9a-zA-Záéíóú]+', ' ', phrase.lower())
-    phrase = phrase.strip().split()
-    num = len(phrase)
-    #print(num)
-
-    count = 0
-    if num == 0:
-        return np.array([]), count
-
-    for word in phrase:
-        if word not in embedding:
-            count += 1
-            if omit_oov:
-                embedding.add(word, np.random.rand(embedding.vector_size))
-
-            continue
-
-        sum_vec.append(embedding[word])
-
-    return [(np.sum(sum_vec, axis=0) / num), count]
 
 """
-Entrega el dataset, ordenado para realizar evaluaciones segun vector promedio
+Entrega tres dataset, formateados para las distintas tareas
 """
-def getSortedDataset(embedding):
+def getSortedDataset():
     data, header = getDataset()
 
-    gob_concept_vectors = {}
-    gob_args_vectors = {}
-    open_args_vectors = {}
-    mode_vectors = {}
-
-    mode_vectors["policy"], _ = getMeanVector("político política", embedding)
-    mode_vectors["value"], _ = getMeanVector("valor", embedding)
-    mode_vectors["fact"], _ = getMeanVector("hecho factual", embedding)
+    dict_task_A = {}
+    dict_task_B = {}
 
     print("Size of dataset: " + str(len(data)))
     count = 0
-    count_oov = 0
+    count_gob = 0
+    count_open = 0
     for tuple in data:
         count += 1
 
         topic = tuple[header[0]]
         is_open_concept = tuple[header[1]]
-
         original_constitutional_concept = tuple[header[2]]
-        original_constitutional_concept_vector, c = getMeanVector(original_constitutional_concept, embedding)
-        count_oov += c
-
         constitutional_concept = tuple[header[3]]
-
         argument = tuple[header[4]]
-        argument_vector, c = getMeanVector(argument, embedding)
-        count_oov += c
 
-        argument_mode = tuple[header[5]]
-
+        # Se almacenan los argumentos para conceptos de gobierno
         if is_open_concept == 'no':
-            if not topic in gob_concept_vectors.keys():
-                gob_concept_vectors[topic] = {}
-                gob_args_vectors[topic] = []
+            count_gob += 1
 
-            if not constitutional_concept in gob_concept_vectors[topic].keys():
-                gob_concept_vectors[topic][constitutional_concept], c = getMeanVector(constitutional_concept, embedding)
-                count_oov += c
+            # Inicializacion de topicos
+            if not topic in dict_task_A.keys():
+                dict_task_A[topic] = {}
 
-            gob_args_vectors[topic].append({
-                "arg": {"content": argument, "vector": argument_vector},
-                "concept": constitutional_concept,
-                "mode": argument_mode,
-            })
+            # Inicializacion de conceptos
+            if not constitutional_concept in dict_task_A[topic].keys():
+                dict_task_A[topic][constitutional_concept] = []
 
+            # Guardamos argumento segun concepto y topico
+            dict_task_A[topic][constitutional_concept].append(argument)
 
+        # Se almacenan los argumentos para conceptos abiertos
         else:
-            if not topic in open_args_vectors.keys():
-                open_args_vectors[topic] = []
+            count_open += 1
 
-            open_args_vectors[topic].append({
-                "arg": {"content": argument, "vector": argument_vector},
-                "concept": constitutional_concept,
-                "open_concept": {"content": original_constitutional_concept, "vector": original_constitutional_concept_vector},
-                "mode": argument_mode,
-            })
+            # Inicializacion de topicos
+            if not topic in dict_task_B.keys():
+                dict_task_B[topic] = {}
+
+            # Inicializacion de conceptos
+            if not constitutional_concept in dict_task_B[topic].keys():
+                dict_task_B[topic][constitutional_concept] = []
+
+            # Guardamos argumento segun concepto y topico
+            dict_task_B[topic][constitutional_concept].append(original_constitutional_concept)
+
 
         if count % 20000 == 0:
-            print(str(count) + " " + argument)
-            print("oov: " + str(count_oov))
+            print(str(count) + " (" + topic + "|" + is_open_concept + ") " + argument + " || " + original_constitutional_concept + " || " + constitutional_concept)
+            print(count_gob, "\t", count_open)
 
-    print(" > Dataset sorted")
-    return gob_concept_vectors, gob_args_vectors, open_args_vectors, mode_vectors
+    print(" > gob concepts")
+    for topic in dict_task_A.keys():
+        print(topic, ") num concepts: ", len(dict_task_A[topic].keys()))
+
+    print(" > open concepts")
+    for topic in dict_task_B.keys():
+        print(topic, ") num concepts: ", len(dict_task_B[topic].keys()))
+
+    # Se eliminan conceptos abiertos que no se clasifican en originales
+    for topic in dict_task_B.keys():
+        delete_concept = []
+        for concept in dict_task_B[topic].keys():
+            if concept not in dict_task_A[topic].keys():
+                delete_concept.append(concept)
+
+        print(" > del ", len(delete_concept), " open concepts")
+        for concept in delete_concept:
+            dict_task_B[topic].pop(concept, None)
+
+    print(" > distribucion args: ", count_gob, "\t", count_open)
+
+    return dict_task_A, dict_task_B
+
 
 
 #####################################################
@@ -203,6 +174,7 @@ def getDataTaskA():
     return train_task_A, dev_task_A, test_task_A
 
 
+
 def getDataTaskB():
     data_taskB = {}
     file = _DATASET_FOLDER / "task_B_dataset.txt"
@@ -226,43 +198,3 @@ def getDataTaskB():
 
     return data_taskB
 
-
-def getDataTaskC():
-    train_task_C = []
-    dev_task_C = []
-    test_task_C = []
-
-    with io.open(_DATASET_FOLDER / "task_C_train.txt", 'r') as f:
-        for line in f:
-            tupla = line.strip().split('/')
-            mode = tupla[0]
-            arg = tupla[1]
-
-            train_task_C.append([arg, mode])
-
-    print("> train_task_C")
-    print(len(train_task_C))
-
-    with io.open(_DATASET_FOLDER / "task_C_dev.txt", 'r') as f:
-        for line in f:
-            tupla = line.strip().split('/')
-            mode = tupla[0]
-            arg = tupla[1]
-
-            dev_task_C.append([arg, mode])
-
-    print("> dev_task_C")
-    print(len(dev_task_C))
-
-    with io.open(_DATASET_FOLDER / "task_C_test.txt", 'r') as f:
-        for line in f:
-            tupla = line.strip().split('/')
-            mode = tupla[0]
-            arg = tupla[1]
-
-            test_task_C.append([arg, mode])
-
-    print("> test_task_C")
-    print(len(test_task_C))
-
-    return train_task_C, dev_task_C, test_task_C

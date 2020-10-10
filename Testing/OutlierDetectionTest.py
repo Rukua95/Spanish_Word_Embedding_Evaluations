@@ -7,8 +7,6 @@ import os
 import io
 import Constant
 
-# Path a carpeta principal
-MAIN_FOLDER = Constant.MAIN_FOLDER
 
 # Path a carpeta con los embeddings
 EMBEDDING_FOLDER = Constant.EMBEDDING_FOLDER
@@ -146,7 +144,7 @@ class OutlierDetectionTestClass:
 
         return OP, OD
 
-    def evaluate_word_vector(self, word_vector_name, word_vector):
+    def evaluateWordVector(self, word_vector_name, word_vector):
         # Obtencion de conjuntos, principal y outlier
         test_list = self.getTests()
 
@@ -454,7 +452,7 @@ class OutlierDetectionTestClass:
     
     :return: lista con resultados de accuraccy y OPP, ademas de info sobre palabras oov
     """
-    def outlierDetectionTest(self):
+    def evaluateSavedEmbeddings(self):
         # Interseccion de datasets
         if self._use_intersect_dataset:
             self.createIntersectDataset()
@@ -465,7 +463,7 @@ class OutlierDetectionTestClass:
             word_vector_name = embedding_name.split('.')[0]
             word_vector = get_wordvector(embedding_name, self._embeddings_size)
 
-            self.evaluate_word_vector(word_vector_name, word_vector)
+            self.evaluateWordVector(word_vector_name, word_vector)
 
 
 

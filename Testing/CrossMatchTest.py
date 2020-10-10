@@ -1,35 +1,17 @@
 from gensim.models.keyedvectors import KeyedVectors
 
-import Constant
+import numpy as np
+import networkx as nx
 
 import random
 import math
-import networkx as nx
-
-import shutil
 import os
 import io
-import numpy as np
-
 import Constant
 
 
-
-
-# Path a carpeta principal
-MAIN_FOLDER = Constant.MAIN_FOLDER
-
 # Path a carpeta con los embeddings
 EMBEDDING_FOLDER = Constant.EMBEDDING_FOLDER
-
-# Extraccion de embeddings
-def get_wordvector(file, cant=None):
-    wordvector_file = EMBEDDING_FOLDER / file
-    print(">>> Cargando vectores " + file + " ...", end='')
-    word_vector = KeyedVectors.load_word2vec_format(wordvector_file, limit=cant)
-    print("listo.\n")
-
-    return word_vector
 
 class CrossMatchTestClass:
 

@@ -12,7 +12,7 @@ import torch.nn as nn
 from random import shuffle
 from sklearn.metrics import precision_recall_fscore_support
 from pytorchtools import EarlyStopping
-from ConstitucionDataHandling import getDataTaskA, getDataTaskB, getDataTaskC
+from ConstitucionDataHandling import getDataTaskA, getDataTaskB
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from gensim.models.keyedvectors import KeyedVectors
 
@@ -36,9 +36,6 @@ def get_wordvector(file, cant=None):
 _DATASET = Constant.DATA_FOLDER / "_Constitucion\\constitucion_data.csv"
 _RESULT = Constant.RESULTS_FOLDER / "Constitucion"
 
-#################################################################################
-# Validacion con red neuronal
-#################################################################################
 
 ##############################################################################
 # Modelo
@@ -88,6 +85,9 @@ class ClassifierModel(nn.Module):
 
         return logits
 
+##############################################################################
+# Clase para dataset
+##############################################################################
 
 class ConstitucionDatasetByTopic(Dataset):
     """Face Landmarks dataset."""
@@ -106,6 +106,10 @@ class ConstitucionDatasetByTopic(Dataset):
         X = X + [0 for x in range(self.max_lenght - len(X))]
 
         return [X, Y]
+
+##############################################################################
+# Clase para evaluacion por RNN
+##############################################################################
 
 class RNNEvaluation():
     _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
@@ -143,8 +147,8 @@ class RNNEvaluation():
             Y = pair[1]
 
             for word in X.strip().split():
-                # TODO: colocar simbolo de palabra desconocida??
                 if word not in word_vector:
+                    X_new.append("<unk>")
                     continue
 
                 X_new.append(word)
@@ -166,7 +170,11 @@ class RNNEvaluation():
             Y_new = 0
 
             for word in X:
-                X_new.append(word_vector.vocab[word].index + 1)
+                if word == "<unk>":
+                    X_new.append(1)
+                    continue
+
+                X_new.append(word_vector.vocab[word].index + 2)
 
             Y_new = labels.index(Y)
 
@@ -388,7 +396,7 @@ class RNNEvaluation():
 
             return [total_top1 / len(test_dataset), total_top5 / len(test_dataset), res[0], res[1], res[2]]
 
-    def trainAndTestTaskA(self, word_vector, word_vector_name):
+    def trainAndTestTaskAandB(self, word_vector, word_vector_name):
         # Preparacion
         print(">>> Entrenamiento & test para task A y B")
         GPUtil.showUtilization()
@@ -402,7 +410,6 @@ class RNNEvaluation():
         data_task_B = getDataTaskB()
 
         for topic in train.keys():
-            # TODO: verificar si el resultado para este topico ya existe, si existe pasar a la evaluacion de task B
             save_path = self._RESULT
             result_name_taskA = "TaskA_topic" + str(topic)
             result_name_taskB_concat = "TaskB_concat_topic" + str(topic)
@@ -486,8 +493,7 @@ class RNNEvaluation():
 
             # Agregar vector de pad en embeddings
             weight = torch.FloatTensor(word_vector.vectors)
-            pad = torch.FloatTensor([np.random.rand(word_vector.vector_size)])
-            weight = torch.cat([pad, weight])
+            weight = torch.cat([self._pad_vector, weight])
 
             n_output = len(concept_list)
 
@@ -561,105 +567,6 @@ class RNNEvaluation():
             torch.cuda.empty_cache()
 
 
-
-    def trainAndTestTaskC(self, word_vector, word_vector_name):
-        # Preparacion
-        print("\n>>> Entrenamiento & test para task C")
-        GPUtil.showUtilization()
-
-        train, dev, test = getDataTaskC()
-
-        print("\nEjemplos de datos")
-        for data in train[:5]:
-            print(data)
-
-
-        # Limpieza de datos
-        clean_train = self.cleanDataVocab(train, word_vector)
-        clean_dev = self.cleanDataVocab(dev, word_vector)
-        clean_test = self.cleanDataVocab(test, word_vector)
-
-        print("\nEjemplos de datos limpios")
-        for data in clean_train[:5]:
-            print(data)
-
-        # Obtener distintos labels y su cantidad de repeticiones
-        mode_list = []
-        amount = {}
-        for pair in clean_train:
-            mode = pair[1]
-            if mode not in mode_list:
-                mode_list.append(mode)
-
-                amount[mode] = 0
-            amount[mode] += 1
-
-
-        # Pasar datos a formato numerico
-        formated_train = self.formatData(clean_train, mode_list, word_vector)
-        formated_dev = self.formatData(clean_dev, mode_list, word_vector)
-        formated_test = self.formatData(clean_test, mode_list, word_vector)
-
-        print("\nCantidad de datos de entrenamiento formateados:", len(formated_train))
-        print("Ejemplo datos formateados")
-        for data in formated_train[:5]:
-            print(data)
-
-        print("\nNombre de clases y cantida de datos")
-        for c in mode_list:
-            print(mode_list.index(c), c, amount[c])
-
-
-        # Cantidad de datos por clase
-        count_by_concept = [amount[c] for c in mode_list]
-        weight_loss = 1. / torch.tensor(count_by_concept, dtype=torch.float32)
-
-        # Dataset
-        train_dataset = ConstitucionDatasetByTopic(formated_train)
-        dev_dataset = ConstitucionDatasetByTopic(formated_dev)
-        test_dataset = ConstitucionDatasetByTopic(formated_test)
-
-        # Agregar vector de pad en embeddings
-        weight = torch.FloatTensor(word_vector.vectors)
-        pad = torch.FloatTensor([np.random.rand(word_vector.vector_size)])
-        weight = torch.cat([pad, weight])
-
-        GPUtil.showUtilization()
-        n_output = len(mode_list)
-
-        # Definicion de modelo RNN
-        mylstm = ClassifierModel(n_output, weight)
-        print("\nComponentes del modelo")
-        print(mylstm)
-
-        # Definicion de optimizador
-        parameters = filter(lambda p: p.requires_grad, mylstm.parameters())
-        optimizer = torch.optim.Adam(parameters, lr=0.001)
-
-        # Funcion de perdida para modelo
-        criterion = nn.NLLLoss(weight=weight_loss)
-
-        # Path para guardar modelo
-        early_save = self.MODEL_FOLDER / (
-                "taskC_" + str(self._embeddings_size) + "_" + word_vector_name + ".pt")
-
-        self.trainModel(mylstm, criterion, optimizer, train_dataset, dev_dataset, early_save)
-
-        # Testing para task A
-        print("\n> Evaluando modelo para task C")
-        t1, t5, p, r, f1 = self.testModel(mylstm, test_dataset, mode_list)
-        result = {"presicion": p, "recall": r, "F1": f1}
-        print(result)
-        result_name_taskC = "TaskC"
-        self.saveResults(word_vector_name, result, result_name_taskC)
-
-        torch.cuda.empty_cache()
-
-        del mylstm
-        torch.cuda.empty_cache()
-
-
-
     def saveResults(self, word_vector_name, result, result_name):
         print("Guardando resultados")
         save_path = self._RESULT
@@ -676,15 +583,11 @@ class RNNEvaluation():
 
 
     def evaluate(self, word_vector, word_vector_name):
-
         self._embeddings_size = len(word_vector.vocab)
         print("Embedding size:", self._embeddings_size)
 
+        self._pad_vector = torch.FloatTensor([np.random.rand(word_vector.vector_size)])
+
         # Task A y B
-        self.trainAndTestTaskA(word_vector, word_vector_name)
+        self.trainAndTestTaskAandB(word_vector, word_vector_name)
 
-        # Task C
-        self.trainAndTestTaskC(word_vector, word_vector_name)
-
-        # TODO: obtener resultados desde archivos
-        #return [resA, resB, resC]

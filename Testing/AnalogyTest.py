@@ -7,8 +7,6 @@ import os
 import io
 import Constant
 
-# Path a carpeta principal
-MAIN_FOLDER = Constant.MAIN_FOLDER
 
 # Path a carpeta con los embeddings
 EMBEDDING_FOLDER = Constant.EMBEDDING_FOLDER
@@ -29,7 +27,6 @@ class AnalogyTestClass:
 
     # "3CosMul" "3CosAdd" "SpaceAnalogy"
     _scores_to_get = [
-        "3CosMul",
         "SpaceAnalogy",
     ]
 
@@ -654,9 +651,13 @@ class AnalogyTestClass:
 
         return [["Cos", cos_res], ["Euc", euc_res]]
 
+    """
+    Evalua un word embedding especifico y guarda el resultado en carpeta de resultados
 
-
-    def evaluate_word_vector(self, word_vector_name, word_vector):
+    :param word_vector_name: nombre de word embedding
+    :param word_vector: word embedding a evaluar
+    """
+    def evaluateWordVector(self, word_vector_name, word_vector):
         # Obtencion de archivos que faltan por testear
         test_file_list = self.getUntestedFiles(word_vector_name)
         print("Untested files:")
@@ -671,7 +672,12 @@ class AnalogyTestClass:
             self.saveResults(word_vector_name, file.name, file_results)
 
 
-
+    """
+    Obtencion de distintos resultados en evaluacion por analogias
+    
+    :param file: nombre de carpeta con analogias a utilizar
+    :param word_vector: word embedding a evaluar
+    """
     def evaluateFile(self, file, word_vector):
         print(">>> Testing: ", file.name)
         pair_list = self.getAnalogyPairs(file)
@@ -693,17 +699,9 @@ class AnalogyTestClass:
 
 
     """
-    Realizacion de test de analogias
-    
-    :param embedding: lista de vectores de palabras
-    :param embedding_name: nobre del vector de palabras
-    :param all_score: determina si se utilizan todas las metricas disponibles
-    :param all_combination: determina si se utlizan todas las posibles combinaciones para una relaciondad,
-             considerando que hay relaciones que no son biyectivas
-                            
-    :return: lista con los resultados, individuales de cada test, con las metricas disponibles
+    Evaluacion de word embeddings guardados en carpeta embedding.
     """
-    def analogyTest(self):
+    def evaluateSavedEmbeddings(self):
         # Interseccion de datasets
         if self._use_intersect_dataset:
             self.createIntersectDataset()
@@ -713,6 +711,6 @@ class AnalogyTestClass:
             word_vector_name = embedding_name.split('.')[0]
             word_vector = get_wordvector(embedding_name, self._vocab_size)
 
-            self.evaluate_word_vector(word_vector_name, word_vector)
+            self.evaluateWordVector(word_vector_name, word_vector)
 
 
