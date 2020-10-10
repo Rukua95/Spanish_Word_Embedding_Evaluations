@@ -1,7 +1,0 @@
-iTunes
-QuickTime
-Flash
-Winamp
-MPlayer
-
-Gettext

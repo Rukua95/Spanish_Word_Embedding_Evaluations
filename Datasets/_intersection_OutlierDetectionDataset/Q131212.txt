@@ -1,9 +1,0 @@
-sed
-nano
-vi
-Kate
-Emacs
-Gedit
-
-Maxima
-LaTeX

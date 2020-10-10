@@ -1,9 +1,0 @@
-GNOME
-CDE
-Xfce
-MATE
-Cinnamon
-
-FreeDOS
-Twitch
-VOD

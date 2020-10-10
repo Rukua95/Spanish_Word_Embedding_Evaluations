@@ -1,9 +1,0 @@
-ajedrez
-go
-backgammon
-chaturanga
-Monopoly
-Othello
-damas
-
-pañuelo

@@ -1,7 +1,0 @@
-Hibernate
-ALSA
-
-Pong
-desvío
-Twitch
-Allmusic

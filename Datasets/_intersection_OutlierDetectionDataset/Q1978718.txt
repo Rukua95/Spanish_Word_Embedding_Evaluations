@@ -1,9 +1,0 @@
-km
-pies
-pársec
-mi
-ua
-m
-pulgada
-
-cent

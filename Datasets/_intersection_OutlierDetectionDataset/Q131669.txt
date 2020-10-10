@@ -1,8 +1,0 @@
-Ubuntu
-Debian
-Knoppix
-Gentoo
-Fedora
-
-distribución
-glibc

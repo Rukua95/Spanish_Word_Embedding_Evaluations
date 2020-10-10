@@ -1,7 +1,0 @@
-jQuery
-WebKit
-glibc
-SDL
-OpenSSL
-
-depurador
