@@ -25,6 +25,6 @@ hermano	monje	2.82
 hermano	muchacho	1.66
 herramienta	implementar	2.95
 mago	vidrio	0.11
-mediodia	mediodia	3.42
+mediodia	mediodia	4.0
 monje	oraculo	1.1
 pasaje	viaje	3.84

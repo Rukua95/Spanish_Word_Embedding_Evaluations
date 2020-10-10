@@ -1,4 +1,4 @@
-asilo	manicomio	3.61
+﻿asilo	manicomio	3.61
 automóvil	coche	3.92
 bosque	cementerio	0.95
 bosque	cementerio	0.95
@@ -21,10 +21,10 @@ grúa	instrumento	1.68
 hermano	monje	2.82
 hermano	muchacho	1.66
 herramienta	instrumento	2.95
-mago	mago	10.0
+mago	mago	4.0
 mago	muchacho	0.42
 mago	vidrio	0.11
-mediodía	mediodía	10.0
+mediodía	mediodía	4.0
 monje	oráculo	1.1
 muchacho	niño	3.76
 trayecto	viaje	3.84
