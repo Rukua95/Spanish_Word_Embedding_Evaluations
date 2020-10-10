@@ -1,5 +1,0 @@
-accuraccy 0.7772365012950788
-OPP 0.5313807531380753
-%_main_oov 0.0
-%_outlier_oov 0.0
-omited sets 0
