@@ -1,3 +1,10 @@
+"""
+Modulo utilizado para realizar early stopping durante el entrenamiento de la red neuronal utilizada en
+la clasificacion de texto.
+Codigo original se puede encontrar en github: https://github.com/Bjarten/early-stopping-pytorch
+"""
+
+
 import numpy as np
 import torch
 

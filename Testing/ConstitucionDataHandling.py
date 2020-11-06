@@ -41,7 +41,7 @@ def getSortedDataset():
     dict_task_A = {}
     dict_task_B = {}
 
-    print("Size of dataset: " + str(len(data)))
+    print(" > Tamaño del dataset:", str(len(data)))
     count = 0
     count_gob = 0
     count_open = 0
@@ -84,31 +84,28 @@ def getSortedDataset():
             # Guardamos argumento segun concepto y topico
             dict_task_B[topic][constitutional_concept].append(original_constitutional_concept)
 
-
-        if count % 20000 == 0:
-            print(str(count) + " (" + topic + "|" + is_open_concept + ") " + argument + " || " + original_constitutional_concept + " || " + constitutional_concept)
-            print(count_gob, "\t", count_open)
-
-    print(" > gob concepts")
+    print(" > Conceptos de gobierno")
     for topic in dict_task_A.keys():
-        print(topic, ") num concepts: ", len(dict_task_A[topic].keys()))
+        print("Topico", topic, "=> cantidad de conceptos: ", len(dict_task_A[topic].keys()))
 
-    print(" > open concepts")
+    print(" > Conceptos abiertos:")
     for topic in dict_task_B.keys():
-        print(topic, ") num concepts: ", len(dict_task_B[topic].keys()))
+        print("Topico", topic, "=> cantidad de conceptos: ", len(dict_task_B[topic].keys()))
 
     # Se eliminan conceptos abiertos que no se clasifican en originales
+    print(" > Conceptos abiertos eliminado")
     for topic in dict_task_B.keys():
         delete_concept = []
         for concept in dict_task_B[topic].keys():
             if concept not in dict_task_A[topic].keys():
                 delete_concept.append(concept)
 
-        print(" > del ", len(delete_concept), " open concepts")
+        print("Topico", topic, "=> cantidad de conceptos eliminado: ", len(delete_concept))
         for concept in delete_concept:
             dict_task_B[topic].pop(concept, None)
 
-    print(" > distribucion args: ", count_gob, "\t", count_open)
+    print(" > Cantidad de argumentos para conceptos de gobierno:", count_gob)
+    print(" > Cantidad de argumentos para conceptos abiertos:", count_open)
 
     return dict_task_A, dict_task_B
 
