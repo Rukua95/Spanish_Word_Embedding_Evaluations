@@ -34,24 +34,21 @@ _RESULT = Constant.RESULTS_FOLDER / "Constitucion"
 ###########################################################################################
 
 class ConstitucionTestClass:
-    _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
-    _embeddings_size = None
-    _lower = True
-    _oov_word = {}
-
     total_words = []
 
     # Dataset y resultados
     _DATASET = Constant.DATA_FOLDER / "_Constitucion"
-    _RESULT = Constant.RESULTS_FOLDER / "Constitucion"
-    def __init__(self):
-        print("Constitucion test class")
+    _RESULT = Constant.RESULTS_FOLDER / "Constitucion_mean_vector"
+    def __init__(self, lower=True):
+        print(">>> Test de Clasificacion de textos (vector promedio) <<<")
+
+        self._lower = lower
 
     """
     Funcion que retorna el vector promedio de una phrase, respecto a un embedding
     """
     def meanVector(self, word_embedding, phrase):
-        sum_vec = [np.zeros(word_embedding.vector_size)]
+        sum_vec = [np.zeros(word_embedding.vectorSize())]
         phrase = re.sub('[^0-9a-zA-Záéíóú]+', ' ', phrase.lower())
         phrase = phrase.strip().split()
         num = len(phrase)
@@ -61,29 +58,24 @@ class ConstitucionTestClass:
             return np.array([])
 
         for word in phrase:
-            self.total_words.append(word)
-
             if word not in word_embedding:
                 count += 1
-                sum_vec.append(self.oov_vector)
 
                 continue
 
             sum_vec.append(word_embedding[word])
 
-        self.total_words = list(dict.fromkeys(self.total_words))
+        if count == num:
+            return np.array([])
 
-        return (np.sum(sum_vec, axis=0) / num)
+
+        return (np.sum(sum_vec, axis=0) / (num - count))
 
 
     """
     Preparacion para resolver task A, entrega lista de vectores para clases y texto
     """
-    def prepareTaskA(self, data, word_embedding):#gob_concept_vectors, gob_args_vectors):
-
-        # Conceptos
-        #############
-
+    def prepareTaskA(self, data, word_embedding):
         # Inicializar diccionario, segun topico, con lista de vectores de conceptos
         gob_concept_vectors_list_by_topics = {}
 
@@ -96,7 +88,7 @@ class ConstitucionTestClass:
 
         # Obtenemos los vectores correspondientes a cada concepto de gobierno.
         for topic in data.keys():
-            print("Topico " + topic + ", cantidad de conceptos: " + str(len(data[topic].keys())))
+            print("Topico " + topic + " => cantidad de conceptos: " + str(len(data[topic].keys())))
 
             # Guardamos vectores y strings de conceptos
             for concept in data[topic].keys():
@@ -132,7 +124,7 @@ class ConstitucionTestClass:
             total_args = 0
             usable_args = 0
             for concept in data[topic].keys():
-                print("Topico", topic,") concepto:", concept, "cantidad de args", len(data[topic][concept]))
+                print("Topico", topic," => concepto:", concept, "=> cantidad de argumentos:", len(data[topic][concept]))
                 for arg in data[topic][concept]:
                     total_args += 1
 
@@ -151,7 +143,7 @@ class ConstitucionTestClass:
                     gobc_arguments_vectors_list_by_topics[topic].append(args_vector)
                     gobc_arguments_concept_list_by_topics[topic].append(concept)
 
-            print(topic, ") total args: ", total_args, " usable args: ", usable_args)
+            print(" > Topico", topic, "=> Argumentos totales: ", total_args, "- Argumentos usables: ", usable_args)
 
         return [gobc_arguments_vectors_list_by_topics, gobc_arguments_concept_list_by_topics], [gob_concept_vectors_list_by_topics, gob_concept_concept_list_by_topics]
 
@@ -175,7 +167,7 @@ class ConstitucionTestClass:
 
         # Obtenemos los vectores correspondientes a cada concepto de gobierno.
         for topic in data.keys():
-            print("Topico " + topic + ", cantidad de conceptos: " + str(len(data[topic].keys())))
+            print("Topico " + topic + " => cantidad de conceptos: " + str(len(data[topic].keys())))
 
             # Guardamos vectores y strings de conceptos
             for concept in data[topic].keys():
@@ -211,6 +203,7 @@ class ConstitucionTestClass:
             total_concept = 0
             usable_concept = 0
             for concept in data[topic].keys():
+                print("Topico", topic, " => concepto:", concept, "=> cantidad de argumentos:", len(data[topic][concept]))
                 for open_concept in data[topic][concept]:
                     total_concept += 1
 
@@ -229,7 +222,7 @@ class ConstitucionTestClass:
                     open_arguments_vectors_list_by_topics[topic].append(open_concept_vector)
                     open_arguments_concept_list_by_topics[topic].append(concept)
 
-            print(topic, ") total open concept: ", total_concept, " usable open concept: ", usable_concept)
+            print(" > Topico", topic, "=> Conceptos abiertos totales:", total_concept, "- Conceptos abiertos usables:", usable_concept)
 
         return [open_arguments_vectors_list_by_topics, open_arguments_concept_list_by_topics], [gob_concept_vectors_list_by_topics, gob_concept_concept_list_by_topics]
 
@@ -267,6 +260,7 @@ class ConstitucionTestClass:
     Clasificacion a partir de vectores promedio
     """
     def meanVectorClasification(self, input_vectors, input_labels, class_vector, class_label):
+        print(">>> Clasificacion")
         acuraccy_results = {}
 
         # Obtencion accuracy (top1 y top5) de similaridad.
@@ -279,8 +273,7 @@ class ConstitucionTestClass:
 
             for i in range(len(input_vectors[topic])):
                 if (i + 1) % (len(input_vectors[topic]) // 10) == 0:
-                    print(" > " + str(i) + ": top1_correct " + str(top1_correct) + ",top5_correct " + str(top5_correct))
-                    print("   -> input labels: ", input_labels[topic][i])
+                    print(" > top1_correct " + str(top1_correct) + ",top5_correct " + str(top5_correct))
 
                 vector = input_vectors[topic][i]
                 vector_label = input_labels[topic][i]
@@ -314,7 +307,7 @@ class ConstitucionTestClass:
 
             # Calculo de presicion y recall (Solo usado para task C)
 
-            print("Resultados-> top1: ", str(top1_acuraccy), " top5: ", str(top5_acuraccy))
+            print(">>> Resultados => top1: ", str(top1_acuraccy), " top5: ", str(top5_acuraccy))
 
             if topic not in acuraccy_results.keys():
                 acuraccy_results[topic] = []
@@ -327,20 +320,13 @@ class ConstitucionTestClass:
     Evaluacion de embeddings
     """
     def MeanVectorEvaluation(self, word_vector_name, word_vector):
-        print("\n>>> Inicio de test <<<\n")
+        print(">>> Evaluando embedding ", str(word_vector_name))
 
         # En caso de palabras fuera del vocabulario
-        self.oov_vector = np.random.rand(word_vector.vector_size)
+        self.oov_vector = np.random.rand(word_vector.vectorSize())
 
         # Obtencion de datos ordenados, ademas de sus respectivos vectores promedios.
         dataA, dataB = getSortedDataset()
-
-        for t in dataA:
-            print(t, ": ", str(len(dataA[t].keys())))
-
-        for t in dataB:
-            print(t, ": ", str(len(dataB[t].keys())))
-
 
         ######################################################################################
         # Task A
@@ -358,23 +344,5 @@ class ConstitucionTestClass:
 
         # Guardamos resultados
         self.saveResults(result_taskA, result_taskB, word_vector_name)
-        print(" > total de palabras:", len(self.total_words))
-
-        with io.open(self._RESULT / ((word_vector_name) + "_total_words.txt"), 'w', encoding='utf-8') as f:
-            for w in self.total_words:
-                f.write(str(w) + "\n")
-
 
         return result_taskA, result_taskB
-
-    """
-    Evaluacion de todos los embeddings
-    """
-    def evalAll(self):
-        print("\n>>> Inicio de test <<<\n")
-        for embedding_name in self._embeddings_name_list:
-            word_vector_name = embedding_name.split('.')[0]
-            print(" > Testing", word_vector_name)
-            word_vector = get_wordvector(embedding_name, self._embeddings_size)
-
-            self.MeanVectorEvaluation(word_vector_name, word_vector)

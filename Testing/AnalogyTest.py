@@ -3,31 +3,19 @@ from gensim.models.keyedvectors import KeyedVectors
 import numpy as np
 
 import shutil
+import torch
 import os
 import io
 import Constant
 
-
-# Path a carpeta con los embeddings
-EMBEDDING_FOLDER = Constant.EMBEDDING_FOLDER
-
-# Extraccion de embeddings
-def get_wordvector(file, cant=None):
-    wordvector_file = EMBEDDING_FOLDER / file
-    print(">>> Cargando vectores " + file + " ...", end='')
-    word_vector = KeyedVectors.load_word2vec_format(wordvector_file, limit=cant)
-    print("listo.\n")
-
-    return word_vector
-
-# Clase para test de analogias
+# Clase para realizar evaluacion de word embedding segun analogias de palabras
 class AnalogyTestClass:
-    _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
-    _oov_word = []
 
     # "3CosMul" "3CosAdd" "SpaceAnalogy"
     _scores_to_get = [
         "SpaceAnalogy",
+        "3CosMul",
+        "3CosAdd",
     ]
 
     # Dataset y resultados
@@ -41,18 +29,19 @@ class AnalogyTestClass:
     """
     Inicializacion de clase.
     
-    :param vocab_size: tamaño de vocabulario a usar
     :param use_intersect_dataset: setting para utilizar la interseccion de los dataset de embeddings
     """
-    def __init__(self, vocab_size=None, use_intersect_dataset=False):
+    def __init__(self, lower=True, use_intersect_dataset=False):
         print("Test de Analogias")
 
-        self._vocab_size = vocab_size
+        self._lower = lower
         self._use_intersect_dataset = use_intersect_dataset
 
         if self._use_intersect_dataset:
             self._DATASET = self._INTERSECT_DATASET
             self._RESULT = Constant.RESULTS_FOLDER / "_intersection_Analogy"
+
+            self.createIntersectDataset()
 
         else:
             self._DATASET = self._ORIGINAL_DATASET
@@ -78,7 +67,7 @@ class AnalogyTestClass:
         for a in p1:
             for b in p2:
                 for c in q1:
-                    res = embedding.most_similar_cosmul(positive=[b, c], negative=[a])
+                    res = self.cosMul(embedding, a, b, c)
                     res1 = res[0][0]
                     res5 = [r[0] for r in res[:5]]
 
@@ -89,6 +78,48 @@ class AnalogyTestClass:
                         ans[1] = 1
 
         return ans
+
+    def cosMul(self, embedding, a, b, c):
+        # Vectores
+        v_a = torch.FloatTensor(embedding[a])
+        v_b = torch.FloatTensor(embedding[b])
+        v_c = torch.FloatTensor(embedding[c])
+
+        v_a = v_a / torch.norm(v_a)
+        v_b = v_b / torch.norm(v_b)
+        v_c = v_c / torch.norm(v_c)
+
+        # Lista de vectores de palabras
+        vectors_matrix = torch.FloatTensor(embedding.getVectors())
+
+        # Lista de palabras
+        word_list = embedding.getWordList()
+
+        # Distancias entre vectores
+        d_a = np.dot(vectors_matrix, v_a)
+        d_b = np.dot(vectors_matrix, v_b)
+        d_c = np.dot(vectors_matrix, v_c)
+
+        d_a = torch.FloatTensor(d_a)
+        d_b = torch.FloatTensor(d_b)
+        d_c = torch.FloatTensor(d_c)
+
+        d_cosmul = (((d_b + 1) / 2) * ((d_c + 1) / 2)) / (((d_a + 1) / 2) + 0.000001)
+        d_pos = torch.argsort(d_cosmul, descending=True)
+
+        i = 0
+        cont = 0
+        res = []
+        while cont < 5:
+            if word_list[d_pos[i]] in [a, b, c]:
+                i += 1
+                continue
+
+            res.append([word_list[d_pos[i]], d_cosmul[d_pos[i]]])
+            i += 1
+            cont += 1
+
+        return res
 
     """
     Utilizando 3CosAdd, encuentra en top1 y top5 la palabra d, utilizando palabras a, b, c,
@@ -106,7 +137,7 @@ class AnalogyTestClass:
         for a in p1:
             for b in p2:
                 for c in q1:
-                    res = embedding.most_similar(positive=[b, c], negative=[a])
+                    res = self.cosAdd(embedding, a, b, c)
                     res1 = res[0][0]
                     res5 = [r[0] for r in res[:5]]
 
@@ -117,6 +148,44 @@ class AnalogyTestClass:
                         ans[1] = 1
 
         return ans
+
+    def cosAdd(self, embedding, a, b, c):
+        # Vectores
+        v_a = torch.FloatTensor(embedding[a])
+        v_b = torch.FloatTensor(embedding[b])
+        v_c = torch.FloatTensor(embedding[c])
+
+        v_a = v_a / torch.norm(v_a)
+        v_b = v_b / torch.norm(v_b)
+        v_c = v_c / torch.norm(v_c)
+
+        # Lista de vectores de palabras
+        vectors_matrix_norm = torch.FloatTensor(embedding.getVectors())
+
+        # Lista de palabras
+        word_list = embedding.getWordList()
+
+        rel_vec = (v_b - v_a + v_c)
+        rel_vec = rel_vec / torch.norm(rel_vec)
+
+        d_vec = np.dot(vectors_matrix_norm, rel_vec)
+
+        d_cosadd = torch.FloatTensor(d_vec)
+        d_pos = torch.argsort(d_cosadd, descending=True)
+
+        i = 0
+        cont = 0
+        res = []
+        while cont < 5:
+            if word_list[d_pos[i]] in [a, b, c]:
+                i += 1
+                continue
+
+            res.append([word_list[d_pos[i]], d_cosadd[d_pos[i]]])
+            i += 1
+            cont += 1
+
+        return res
 
 
     """
@@ -192,17 +261,26 @@ class AnalogyTestClass:
         if intersect_dataset_path.exists():
             shutil.rmtree(intersect_dataset_path)
 
+        if self._use_intersect_dataset:
+            self.createIntersectDataset()
+
 
     def createIntersectDataset(self):
-        print("Obteniendo interseccion de datasets")
-        for embedding_name in self._embeddings_name_list:
-            word_vector = get_wordvector(embedding_name, self._vocab_size)
-            state = self.intersectDataset(word_vector)
+        print("Intersectando datasets...")
 
-            if not state:
-                raise Exception("Interseccion vacia de embeddings, no se puede continuar con la evaluacion")
+        # Verificar que existe carpeta para guardar nuevo dataset
+        if not self._INTERSECT_DATASET.exists():
+            os.makedirs(self._INTERSECT_DATASET)
 
-        print("Nuevo dataset en:\n ", str(self._DATASET))
+        # Verificar si hay datasets ya intersectados
+        print(" > Revisando si existe interseccion previa")
+        for file_name in os.listdir(self._ORIGINAL_DATASET):
+            if file_name in os.listdir(self._INTERSECT_DATASET):
+                print("   > ", file_name, " ya ha sido intersectado anteriormente")
+            else:
+                origin_file = self._ORIGINAL_DATASET / file_name
+                shutil.copy(origin_file, self._INTERSECT_DATASET)
+                print("   > ", file_name, " no ha sido intersectado anteriormente, copiando")
 
 
     """
@@ -212,22 +290,8 @@ class AnalogyTestClass:
     """
     def intersectDataset(self, word_vector):
         print("Intersectando datasets...")
-        next_dataset_path = self._INTERSECT_DATASET # Constant.DATA_FOLDER / "_intersection_AnalogyDataset"
+        next_dataset_path = self._INTERSECT_DATASET
         deleted_files = 0
-
-        # Verificar que existe carpeta para guardar nuevo dataset
-        if not next_dataset_path.exists():
-            os.makedirs(next_dataset_path)
-
-        # Verificar si hay datasets ya intersectados
-        print(" > Revisando si existe interseccion previa")
-        for file_name in os.listdir(self._ORIGINAL_DATASET):
-            if file_name in os.listdir(next_dataset_path):
-                print("   > ", file_name, " ya ha sido intersectado anteriormente")
-            else:
-                origin_file = self._ORIGINAL_DATASET / file_name
-                shutil.copy(origin_file, next_dataset_path)
-                print("   > ", file_name, " no ha sido intersectado anteriormente, copiando")
 
         # Revisar cada archivo dentro de la carpeta de dataset
         print(" > Revision de archivos en dataset")
@@ -244,7 +308,7 @@ class AnalogyTestClass:
             # Revisar el dataset intersectado que llevamos hasta el momento
             with io.open(file_path, 'r') as f:
                 for line in f:
-                    tupla = line.lower().split()
+                    tupla = line.lower().split() if self._lower else line.split()
 
                     p1 = tupla[0].split('/')
                     p2 = tupla[1].split('/')
@@ -374,7 +438,7 @@ class AnalogyTestClass:
         with io.open(test_file_path, 'r') as f:
             for line in f:
                 line = line.strip()
-                line = line.lower()
+                line = line.lower() if self._lower else line
 
                 pair = line.split()
                 word_pair.append(pair)
@@ -668,7 +732,7 @@ class AnalogyTestClass:
         for file in test_file_list:
             file_results = self.evaluateFile(file, word_vector)
 
-            # Guardamos los resultados de forma temporal
+            # Guardamos los resultados
             self.saveResults(word_vector_name, file.name, file_results)
 
 
@@ -696,21 +760,3 @@ class AnalogyTestClass:
             res = res + res_aspace
 
         return res
-
-
-    """
-    Evaluacion de word embeddings guardados en carpeta embedding.
-    """
-    def evaluateSavedEmbeddings(self):
-        # Interseccion de datasets
-        if self._use_intersect_dataset:
-            self.createIntersectDataset()
-
-        # Realizacion de test por cada embedding
-        for embedding_name in self._embeddings_name_list:
-            word_vector_name = embedding_name.split('.')[0]
-            word_vector = get_wordvector(embedding_name, self._vocab_size)
-
-            self.evaluateWordVector(word_vector_name, word_vector)
-
-

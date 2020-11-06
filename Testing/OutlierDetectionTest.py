@@ -7,23 +7,8 @@ import os
 import io
 import Constant
 
-
-# Path a carpeta con los embeddings
-EMBEDDING_FOLDER = Constant.EMBEDDING_FOLDER
-
-# Extraccion de embeddings
-def get_wordvector(file, cant=None):
-    wordvector_file = EMBEDDING_FOLDER / file
-    print(">>> Cargando vectores " + file + " ...", end='')
-    word_vector = KeyedVectors.load_word2vec_format(wordvector_file, limit=cant)
-    print("listo.\n")
-
-    return word_vector
-
-
+# Clase para realizar evaluacion de word embedding segun outlier detection
 class OutlierDetectionTestClass:
-    _embeddings_name_list = os.listdir(EMBEDDING_FOLDER)
-    _oov_word = {}
 
     # Dataset y resultados
     _DATASET = Constant.DATA_FOLDER / "OutlierDetectionDataset"
@@ -33,10 +18,9 @@ class OutlierDetectionTestClass:
 
     _RESULT = Constant.RESULTS_FOLDER / "OutlierDetection"
 
-    def __init__(self, cantidad=None, lower=True, use_intersect_dataset=False):
-        print("Test de Outlier Detection")
+    def __init__(self, lower=True, use_intersect_dataset=False):
+        print(">>> Test de Outlier Detection <<<")
 
-        self._embeddings_size = cantidad
         self._lower = lower
         self._use_intersect_dataset = use_intersect_dataset
 
@@ -44,6 +28,8 @@ class OutlierDetectionTestClass:
         if self._use_intersect_dataset:
             self._DATASET = self._INTERSECT_DATASET
             self._RESULT = Constant.RESULTS_FOLDER / "_intersection_OutlierDetection"
+
+            self.createIntersectDataset()
 
         else:
             self._DATASET = self._ORIGINAL_DATASET
@@ -65,8 +51,8 @@ class OutlierDetectionTestClass:
             u = embedding[word]
             v = embedding[w]
 
-            sum += u.dot(v) / (np.linalg.norm(u) * np.linalg.norm(v))
-            sum += v.dot(u) / (np.linalg.norm(u) * np.linalg.norm(v))
+            sum += np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v))
+            sum += np.dot(v, u) / (np.linalg.norm(u) * np.linalg.norm(v))
             k += 1
 
         return (sum / k)
@@ -89,20 +75,16 @@ class OutlierDetectionTestClass:
         filter_outlier_set = []
 
         for w in main_set:
-            if len(w.strip().split('_')) > 1:
-                continue
-
-            if w not in embedding:
+            if len(w.strip().split('_')) > 1 or (w not in embedding):
                 main_oov += 1
+                continue
 
             filter_main_set.append(w)
 
         for w in outlier_set:
-            if len(w.strip().split('_')) > 1:
-                continue
-
-            if w not in embedding:
+            if len(w.strip().split('_')) > 1 or (w not in embedding):
                 outlier_oov += 1
+                continue
 
             filter_outlier_set.append(w)
 
@@ -144,27 +126,6 @@ class OutlierDetectionTestClass:
 
         return OP, OD
 
-    def evaluateWordVector(self, word_vector_name, word_vector):
-        # Obtencion de conjuntos, principal y outlier
-        test_list = self.getTests()
-
-        # Obtencion y limpieza de resultados
-        word_vector_results = self.getScores(word_vector, test_list)
-        word_vector_results = [
-            ["accuraccy", word_vector_results[0]],
-            ["OPP", word_vector_results[1]],
-            ["%_main_oov", word_vector_results[2]],
-            ["%_outlier_oov", word_vector_results[3]],
-            ["omited sets", word_vector_results[4]]
-        ]
-
-        print(">>> Resultados:")
-        for tupla in word_vector_results:
-            print(tupla)
-
-        # Guardado de resultados
-        self.saveResults(word_vector_name, word_vector_results)
-
 
     """
     Obtencion de accuracy y OPP
@@ -191,27 +152,25 @@ class OutlierDetectionTestClass:
         count = 0
         for test in test_sets:
             count += 1
-            print(">>> Test " + str(count) + " of " + str(len(test_sets)))
+            print(" > Test", str(count), "de", str(len(test_sets)))
 
 
             # Conjunto principal y outlier
             main_set, outlier_set = test
-            print(">>> Original set:", end='\n    ')
-            print(main_set, end='\n    ')
-            print(outlier_set)
+            print("   > Sets originales:")
+            print("    ", main_set)
+            print("    ", outlier_set)
 
 
             # Cuenta cantidad de palabras oov y elimina terminos que utilicen mas de una palabra
             main_set, outlier_set, main_oov, outlier_oov = self.omitOOVWord(embedding, main_set, outlier_set)
 
-            print(">>> Sets editados:", end='\n    ')
-            print(main_set, end='\n    ')
-            print("oov words: " + str(main_oov) + " de " + str(len(main_set)), end='\n    ')
-            print(outlier_set)
-            print("oov words: " + str(outlier_oov) + " de " + str(len(outlier_set)), end='\n    ')
+            print(" > Sets editados:")
+            print("    ", main_set, "- oov words:", str(main_oov), "de", str(len(main_set)))
+            print("    ", outlier_set, "- oov words:", str(outlier_oov), "de", str(len(outlier_set)))
 
             if len(main_set) < 2 or len(outlier_set) < 1:
-                print("Test set no cumple con condiciones de evaluacion")
+                print(" > Test set no cumple con condiciones de evaluacion, se procede a omitir")
                 omited_test += 1
                 continue
 
@@ -224,9 +183,8 @@ class OutlierDetectionTestClass:
             # Obtencion de listas OP y OD
             OP_list, OD_list = self.getFileScores(embedding, main_set, outlier_set)
 
-            print("OP and OD list:")
-            print(OP_list)
-            print(OD_list)
+            print(" > OP:", OP_list)
+            print(" > OD:", OD_list)
 
             sum_op += (sum(OP_list) / len(main_set))
             sum_od += sum(OD_list)
@@ -259,46 +217,45 @@ class OutlierDetectionTestClass:
         if intersect_dataset_path.exists():
             shutil.rmtree(intersect_dataset_path)
 
+        if self._use_intersect_dataset:
+            self.createIntersectDataset()
+
     """
     Metodo que crea dataset con la interseccion de vocabulario de los embeddings en carpeta
     """
 
     def createIntersectDataset(self):
-        print("Obteniendo interseccion de datasets")
-        for embedding_name in self._embeddings_name_list:
-            word_vector = get_wordvector(embedding_name, self._embeddings_size)
-            state = self.intersectDataset(word_vector)
-
-            if not state:
-                raise Exception("Interseccion vacia de embeddings, no se puede continuar con la evaluacion")
-
-        print("Nuevo dataset en:\n ", str(self._DATASET))
-
-
-    def intersectDataset(self, word_vector):
-        print("Intersectando datasets...")
-        next_dataset_path = self._INTERSECT_DATASET
-        deleted_files = 0
+        print(">>> Copiando dataset original para realizar interseccion")
 
         # Verificar que existe carpeta para guardar nuevo dataset
-        if not next_dataset_path.exists():
-            os.makedirs(next_dataset_path)
+        if not self._INTERSECT_DATASET.exists():
+            os.makedirs(self._INTERSECT_DATASET)
 
         # Verificar si hay datasets ya intersectados
-        print(" > Revisando si existe interseccion previa")
         for file_name in os.listdir(self._ORIGINAL_DATASET):
-            if file_name in os.listdir(next_dataset_path):
-                print("   > ", file_name, " ya ha sido intersectado anteriormente")
+            if file_name in os.listdir(self._INTERSECT_DATASET):
+                print("   ", file_name, " ya ha se encuentra en dataset de interseccion, reutilizando")
+
             else:
                 origin_file = self._ORIGINAL_DATASET / file_name
-                shutil.copy(origin_file, next_dataset_path)
-                print("   > ", file_name, " no ha sido intersectado anteriormente, copiando")
+                shutil.copy(origin_file, self._INTERSECT_DATASET)
+                print("   ", file_name, " no se encuentra en dataset de interseccion, copiando")
+
+    """
+    Metodo que elimina palabras de los dataset, que esten fuera del vocabulario del word embeddings dado
+
+    :param word_vector: word embedding para comparar vocabulario
+    """
+    def intersectDataset(self, word_vector):
+        print(">>> Intersectando datasets con vocabulario de embedding...")
+        next_dataset_path = self._INTERSECT_DATASET
+        deleted_files = 0
 
         # Revisar cada archivo dentro de la carpeta de dataset
         print(" > Revision de archivos en dataset")
         to_delete_files = []
         for file_name in os.listdir(next_dataset_path):
-            print(" > Revisando " + file_name)
+            print("   Revisando " + file_name)
             file_path = next_dataset_path / file_name
             deleted_element = 0
             main_set_lines = []
@@ -314,7 +271,7 @@ class OutlierDetectionTestClass:
                         outlier_set_lines = []
                         continue
 
-                    tupla = line.lower().split()
+                    tupla = line.lower().split() if self._lower else line.split()
 
                     # Revisar cantidad de palabras
                     if len(tupla) > 1:
@@ -328,11 +285,14 @@ class OutlierDetectionTestClass:
 
                     outlier_set_lines.append(line)
 
+            total_lines = len(main_set_lines) + len(outlier_set_lines) + deleted_element
+            print("   > Lineas eliminadas:", str(deleted_element), "de", str(total_lines))
+
             # Eliminamos archivo que no aporta al analisis
             if len(main_set_lines) < 2 or len(outlier_set_lines) < 1:
                 deleted_files += 1
                 to_delete_files.append(file_path)
-                print("  > Archivo esta vacio, se procede a eliminar")
+                print("   > Conjunto principal u outlier vacios, se procede a eliminar")
                 continue
 
             # Escribimos documento
@@ -345,10 +305,7 @@ class OutlierDetectionTestClass:
                 for line in outlier_set_lines:
                     f.write(line)
 
-            total_lines = len(main_set_lines) + len(outlier_set_lines) + deleted_element
-            print(" > Lineas eliminadas: " + str(deleted_element) + " de " + str(total_lines))
-
-        print(" > archivos a eliminar: " + str(deleted_files) + "\n")
+        print(" > Archivos a eliminar: " + str(deleted_files) + "\n")
         for file in to_delete_files:
             os.remove(file)
 
@@ -361,7 +318,7 @@ class OutlierDetectionTestClass:
     :return: lista con nombre de archivos con test de outlier detection
     """
     def getTestFiles(self):
-        print(">>> Obteniendo nombre de archivos de test desde:\n     " + str(self._DATASET))
+        print(" > Obteniendo nombre de archivos de test desde:", str(self._DATASET))
         if not self._DATASET.exists():
             raise Exception("No se logro encontrar carpeta con test")
 
@@ -379,7 +336,6 @@ class OutlierDetectionTestClass:
     def getWords(self, file_name):
         main_set = []
         outlier_set = []
-
         with io.open(self._DATASET / file_name, 'r', encoding='utf-8') as f:
             for line in f:
                 if line == "\n":
@@ -388,7 +344,7 @@ class OutlierDetectionTestClass:
                     continue
 
                 line = line.strip()
-                line = line.lower()
+                line = line.lower() if self._lower else line
 
                 outlier_set.append(line)
 
@@ -403,9 +359,10 @@ class OutlierDetectionTestClass:
     :return: lista de pares de conjuntos, conjunto principal y outlier, de cada test
     """
     def getTests(self):
+        print(" > Extraccion de datasets")
+
         file_list = self.getTestFiles()
         test_list = []
-        count = 0
 
         for file in file_list:
             test_list.append(self.getWords(file))
@@ -437,33 +394,38 @@ class OutlierDetectionTestClass:
             for r in results:
                 f.write(r[0] + " " + str(r[1]) + "\n")
 
-
     ###########################################################################################
     # EVALUACION POR OUTLIER DETECTION
     ###########################################################################################
 
-
     """
-    Realizacion de test de outlier detection
-    
-    :param embedding: lista de vectores de palabras
-    :param embedding_name: nombre del embedding a evaluar
-    :param existe_ovv: determina si se consideran palabras fuera del vocabulario
-    
-    :return: lista con resultados de accuraccy y OPP, ademas de info sobre palabras oov
+    Evalua un word embedding especifico y guarda el resultado en carpeta de resultados
+
+    :param word_vector_name: nombre de word embedding, utilizado para especificar nombre de
+                             archivo de resultados
+    :param word_vector: word embedding a evaluar
     """
-    def evaluateSavedEmbeddings(self):
-        # Interseccion de datasets
-        if self._use_intersect_dataset:
-            self.createIntersectDataset()
+    def evaluateWordVector(self, word_vector_name, word_vector):
+        print(">>> Evaluando embedding ", str(word_vector_name))
 
-        # Realizacion de test por cada embedding
-        print("\n>>> Inicio de test <<<\n")
-        for embedding_name in self._embeddings_name_list:
-            word_vector_name = embedding_name.split('.')[0]
-            word_vector = get_wordvector(embedding_name, self._embeddings_size)
+        # Obtencion de conjuntos, principal y outlier
+        test_list = self.getTests()
 
-            self.evaluateWordVector(word_vector_name, word_vector)
+        # Obtencion y limpieza de resultados
+        word_vector_results = self.getScores(word_vector, test_list)
+        word_vector_results = [
+            ["accuraccy", word_vector_results[0]],
+            ["OPP", word_vector_results[1]],
+            ["%_main_oov", word_vector_results[2]],
+            ["%_outlier_oov", word_vector_results[3]],
+            ["omited sets", word_vector_results[4]]
+        ]
 
+        # Guardado de resultados
+        self.saveResults(word_vector_name, word_vector_results)
+
+        print(">>> Resultados")
+        for tuple in word_vector_results:
+            print(tuple)
 
 
