@@ -19,11 +19,13 @@ class SimilarityTestClass:
 
     _RESULT = Constant.RESULTS_FOLDER / "Similarity"
 
-    def __init__(self, lower=True, use_intersect_dataset=False):
+    def __init__(self, lower=True, use_intersect_dataset=False, datasets=[]):
         print(">>> Test de Similaridad <<<")
 
         self._lower = lower
         self._use_intersect_dataset = use_intersect_dataset
+
+        self._datasets = datasets
 
         # Interseccion de datasets
         if self._use_intersect_dataset:
@@ -219,7 +221,23 @@ class SimilarityTestClass:
         if not self._DATASET.exists():
             raise Exception("No se logro encontrar carpeta con test")
 
-        return os.listdir(self._DATASET)
+        if len(self._datasets) == 0:
+            return os.listdir(self._DATASET)
+        else:
+            datasets_files = []
+            for set_file in os.listdir(self._DATASET):
+                use = False
+                for name in self._datasets:
+                    if name in set_file:
+                        use = True
+
+                if use:
+                    datasets_files.append(set_file)
+
+            if len(datasets_files) == 0:
+                raise Exception("Datasets a utilizar no existen")
+
+            return datasets_files
 
 
     """

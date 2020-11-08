@@ -11,13 +11,6 @@ import Constant
 # Clase para realizar evaluacion de word embedding segun analogias de palabras
 class AnalogyTestClass:
 
-    # "3CosMul" "3CosAdd" "SpaceAnalogy"
-    _scores_to_get = [
-        "SpaceAnalogy",
-        "3CosMul",
-        "3CosAdd",
-    ]
-
     # Dataset y resultados
     _DATASET = Constant.DATA_FOLDER / "AnalogyDataset"
 
@@ -31,11 +24,15 @@ class AnalogyTestClass:
     
     :param use_intersect_dataset: setting para utilizar la interseccion de los dataset de embeddings
     """
-    def __init__(self, lower=True, use_intersect_dataset=False):
+    def __init__(self, lower=True, use_intersect_dataset=False, datasets=[], metrics=["SpaceAnalogy", "3CosMul", "3CosAdd",]):
         print("Test de Analogias")
 
         self._lower = lower
         self._use_intersect_dataset = use_intersect_dataset
+        self._datasets = datasets
+
+        # "3CosMul" "3CosAdd" "SpaceAnalogy"
+        self._scores_to_get = metrics
 
         if self._use_intersect_dataset:
             self._DATASET = self._INTERSECT_DATASET
@@ -389,7 +386,13 @@ class AnalogyTestClass:
         test_files = []
 
         for file_name in os.listdir(dataset_folder):
-            test_files.append(dataset_folder / file_name)
+            use = (len(self._datasets) == 0)
+            for set_name in self._datasets:
+                if set_name in file_name:
+                    use = True
+
+            if use:
+                test_files.append(dataset_folder / file_name)
 
         return test_files
 

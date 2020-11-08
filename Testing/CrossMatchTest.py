@@ -87,10 +87,11 @@ class CrossMatchTestClass:
     :return: lista de palabras existentes embedding 
     """
     def getWordList(self, embedding):
-        word_list = []
+        #word_list = []
+        #for w, obj in embedding.vocab.items():
+        #    word_list.append(w)
 
-        for w, obj in embedding.vocab.items():
-            word_list.append(w)
+        word_list = embedding.getWordList()
 
         sample = random.sample(word_list, self._main_sample)
 
