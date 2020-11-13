@@ -13,7 +13,7 @@ from AnalogyTest import AnalogyTestClass
 from OutlierDetectionTest import OutlierDetectionTestClass
 from CrossMatchTest import CrossMatchTestClass
 
-
+# Clase utilizada para representar embeddings
 class Embedding:
     def __init__(self, embedding):
         self._embedding = embedding
@@ -39,7 +39,7 @@ class Embedding:
         self._embedding.init_sims()
         return self._embedding.vectors_norm
 
-
+# Metodo para cargar embeddings
 def getWordEmbedding(embedding_path):
     print("> Loading word embedding...")
     try:
@@ -50,15 +50,16 @@ def getWordEmbedding(embedding_path):
 
     return word_embedding
 
+# Evalucion comparativa de multiples word embeddings
 def multipleEmbeddingEval(args):
-    # Get embedding
+    # Verificar path a directorio de embeddings.
     try:
         word_embeddings_directory = Path(args.embedding_directory)
         embeddings_files_name = os.listdir(word_embeddings_directory)
     except:
         raise Exception("Problems at reading path directory with embeddings: " + str(word_embeddings_directory))
 
-    # Get data for evaluations
+    # Obtencion de argumentos
     similarity_datasets = args.similarity_datasets
     analogy_datasets = args.analogy_datasets
     outlier = args.outlier_detection
@@ -66,24 +67,29 @@ def multipleEmbeddingEval(args):
 
     verbose = args.verbose
 
+    # Verificar existencia de path de segundo word embedding para cross-match
     try:
         if cross_match_emb != None:
             cross_match_emb = Path(args.cross_match_emb)
     except:
         raise Exception("Cross-match second embedding path is invalid: " + str(cross_match_emb))
 
+    # Creacion de test de similaridad
     if similarity_datasets != None:
         similarity_test = SimilarityTestClass(use_intersect_dataset=True, datasets=similarity_datasets)
         similarity_test.resetIntersectDataset()
 
+    # Creacion de test de analogias
     if analogy_datasets != None:
         analogy_test = AnalogyTestClass(use_intersect_dataset=True, datasets=analogy_datasets, metrics=["3CosMul"])
         analogy_test.resetIntersectDataset()
 
+    # Creacion de test de outlier detection
     if outlier:
         outlier_detection_test = OutlierDetectionTestClass(use_intersect_dataset=True)
         outlier_detection_test.resetIntersectDataset()
 
+    # Interseccion de vocabularios
     for embedding_file in embeddings_files_name:
         print("> Intersecting dataset with", (word_embeddings_directory / embedding_file).stem, "vocabulary...")
         embedding = getWordEmbedding(word_embeddings_directory / embedding_file)
@@ -101,6 +107,7 @@ def multipleEmbeddingEval(args):
         print("  Done intersecting")
         del word_embedding
 
+    # Evaluacion de embeddings
     for embedding_file in embeddings_files_name:
         embedding_path = word_embeddings_directory / embedding_file
 
@@ -108,6 +115,7 @@ def multipleEmbeddingEval(args):
         word_embedding = Embedding(embedding)
         word_embedding_name = embedding_path.stem
 
+        # Evaluacion por similaridad
         if similarity_datasets != None:
             print("> Word similarity test")
             results = similarity_test.evaluateWordVector(word_embedding_name, word_embedding)
@@ -120,6 +128,7 @@ def multipleEmbeddingEval(args):
 
                 print("\n")
 
+        # Evaluacion por analogias
         if analogy_datasets != None:
             print("> Word analogy test")
             results = analogy_test.evaluateWordVector(word_embedding_name, word_embedding)
@@ -132,6 +141,7 @@ def multipleEmbeddingEval(args):
 
                 print("\n")
 
+        # Evaluacion por outlier detection
         if outlier:
             print("> Outlier detection test")
             results = outlier_detection_test.evaluateWordVector(word_embedding_name, word_embedding)
@@ -144,6 +154,7 @@ def multipleEmbeddingEval(args):
 
                 print("\n")
 
+        # Evaluacion por cross-match
         if cross_match_emb != None:
             print("> Cross-match test")
             word_embedding2 = getWordEmbedding(cross_match_emb)
@@ -161,12 +172,19 @@ def multipleEmbeddingEval(args):
 
                 print("\n")
 
-
+# Evaluacion individual de word embeddings
 def singleEmbeddingEval(args):
-    # Info from args
-    word_embedding_path = args.embedding_file
-    word_embeddings_directory = args.embedding_directory
+    # Verificar path a word embedding
+    try:
+        word_embedding_path = Path(args.embedding_file)
+        word_embedding_name = word_embedding_path.stem
+    except:
+        raise Exception("Problems at reading path directory with embeddings: " + str(word_embedding_path))
 
+    embedding = getWordEmbedding(word_embedding_path)
+    word_embedding = Embedding(embedding)
+
+    # Argumentos
     similarity_datasets = args.similarity_datasets
     analogy_datasets = args.analogy_datasets
     outlier = args.outlier_detection
@@ -174,17 +192,14 @@ def singleEmbeddingEval(args):
 
     verbose = args.verbose
 
+    # Verificar path a word embedding utilizado en cross-match
     try:
         if cross_match_emb != None:
             cross_match_emb = Path(args.cross_match_emb)
     except:
         raise Exception("Cross-match second embedding path is invalid")
 
-    word_embedding_path = Path(word_embedding_path)
-    embedding = getWordEmbedding(word_embedding_path)
-    word_embedding = Embedding(embedding)
-    word_embedding_name = word_embedding_path.stem
-
+    # Evalucion por similaridad
     if similarity_datasets != None:
         print("> Word similarity test")
         similarity_test = SimilarityTestClass(datasets=similarity_datasets)
@@ -198,6 +213,7 @@ def singleEmbeddingEval(args):
 
             print("\n")
 
+    # Evaluacion por analogias
     if analogy_datasets != None:
         print("> Word analogy test")
         analogy_test = AnalogyTestClass(datasets=analogy_datasets, metrics=["3CosMul"])
@@ -211,6 +227,7 @@ def singleEmbeddingEval(args):
 
             print("\n")
 
+    # Evaluacion por outlier detection
     if outlier:
         print("> Outlier detection test")
         outlier_detection_test = OutlierDetectionTestClass()
@@ -224,9 +241,11 @@ def singleEmbeddingEval(args):
 
             print("\n")
 
+    # Evaluacion por cross-match
     if cross_match_emb != None:
         print("> Cross-match test")
         word_embedding2 = getWordEmbedding(cross_match_emb)
+        word_embedding2 = Embedding(word_embedding2)
         word_embedding_name2 = cross_match_emb.stem
 
         cross_match_test = CrossMatchTestClass()
@@ -244,10 +263,11 @@ def singleEmbeddingEval(args):
 def main():
 
     # Parser
-    my_parser = argparse.ArgumentParser(description='Word embedding evaluation program. Word embeddings are loaded '
+    my_parser = argparse.ArgumentParser(description='Word embedding intrinsec evaluation program. Word embeddings are loaded '
                                                     'using load_word2vec_format from KeyedVectors in gensim library. '
-                                                    'Results are saved in folder Results, under the same name as the '
-                                                    'file containing the embedding.')
+                                                    'Results are saved in folder "Resultados", under the same name as the '
+                                                    'file containing the embedding. This program support evaluation by '
+                                                    'word similarity, word analogy, outlier detection and cross-match.')
 
     my_group = my_parser.add_mutually_exclusive_group(required=True)
 
@@ -306,11 +326,7 @@ def main():
                            help='Directly show results from evaluations and related info.')
 
     args = my_parser.parse_args()
-    #print(vars(args))
 
-    pass
-
-    # Info from args
     word_embedding_path = args.embedding_file
     word_embeddings_directory = args.embedding_directory
 
