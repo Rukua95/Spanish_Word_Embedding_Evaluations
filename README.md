@@ -5,7 +5,7 @@
 ## Table of Contents
 
 * [About the Project](#about-the-project)
-* [Evaluations and Datasets](#evaluation-and-datasets)
+* [Evaluations and Datasets](#evaluations-and-datasets)
   * [Word Similarity](#word-similarity)
   * [Word Analogy](#word-analogy)
   * [Outlier Detection](#outlier-detection)
@@ -13,11 +13,11 @@
   * [Text Classification](#text-classification)
 * [Usage](#usage)
 * [Results](#results)
-  * [Word Similarity](#word-similarity-results)
-  * [Word Analogy](#word-similarity-results)
-  * [Outlier Detection](#word-similarity-results)
-  * [Cross-match](#word-similarity-results)
-  * [Text Classification](#word-similarity-results)
+  * [Word Similarity](#word-similarity)
+  * [Word Analogy](#word-analogy)
+  * [Outlier Detection](#outlier-detection)
+  * [Cross-match](#cross-match)
+  * [Text Classification](#text-classification)
 * [Reference](#reference)
 
 
@@ -132,3 +132,5 @@ This evaluation tool has been used to compare differents word embeddings and the
 
 <!-- REFERENCE -->
 ## Reference
+
+
