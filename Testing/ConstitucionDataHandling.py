@@ -31,7 +31,6 @@ def getDataset():
     return data, header
 
 
-
 """
 Entrega tres dataset, formateados para las distintas tareas
 """
@@ -110,7 +109,6 @@ def getSortedDataset():
     return dict_task_A, dict_task_B
 
 
-
 #####################################################
 # RNN Evaluation
 #####################################################
@@ -132,10 +130,6 @@ def getDataTaskA():
 
             train_task_A[topic].append([argument, gob_concept])
 
-    print("> train_task_A")
-    for topic in train_task_A.keys():
-        print(topic, str(len(train_task_A[topic])))
-
     with io.open(_DATASET_FOLDER / "task_A_dev.txt", 'r') as f:
         for line in f:
             tupla = line.strip().split('/')
@@ -147,10 +141,6 @@ def getDataTaskA():
                 dev_task_A[topic] = []
 
             dev_task_A[topic].append([argument, gob_concept])
-
-    print("> dev_task_A")
-    for topic in dev_task_A.keys():
-        print(topic, str(len(dev_task_A[topic])))
 
     with io.open(_DATASET_FOLDER / "task_A_test.txt", 'r') as f:
         for line in f:
@@ -164,12 +154,7 @@ def getDataTaskA():
 
             test_task_A[topic].append([argument, gob_concept])
 
-    print("> test_task_A")
-    for topic in test_task_A.keys():
-        print(topic, str(len(test_task_A[topic])))
-
     return train_task_A, dev_task_A, test_task_A
-
 
 
 def getDataTaskB():
@@ -188,10 +173,6 @@ def getDataTaskB():
                 data_taskB[topic] = []
 
             data_taskB[topic].append([argument, open_concept, gob_concept])
-
-    print("> data_taskB")
-    for topic in data_taskB.keys():
-        print(topic, str(len(data_taskB[topic])))
 
     return data_taskB
 

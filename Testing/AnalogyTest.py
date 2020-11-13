@@ -25,7 +25,7 @@ class AnalogyTestClass:
     :param use_intersect_dataset: setting para utilizar la interseccion de los dataset de embeddings
     """
     def __init__(self, lower=True, use_intersect_dataset=False, datasets=[], metrics=["SpaceAnalogy", "3CosMul", "3CosAdd",]):
-        print("Test de Analogias")
+        #print("Test de Analogias")
 
         self._lower = lower
         self._use_intersect_dataset = use_intersect_dataset
@@ -253,7 +253,7 @@ class AnalogyTestClass:
     Funcion que borra datasets para realizar test, el cual usa palabras de la interseccion de los vocabularios.
     """
     def resetIntersectDataset(self):
-        print("Reiniciando dataset")
+        #print("Reiniciando dataset")
         intersect_dataset_path = self._INTERSECT_DATASET
         if intersect_dataset_path.exists():
             shutil.rmtree(intersect_dataset_path)
@@ -263,21 +263,19 @@ class AnalogyTestClass:
 
 
     def createIntersectDataset(self):
-        print("Intersectando datasets...")
+        #print("Intersectando datasets...")
 
         # Verificar que existe carpeta para guardar nuevo dataset
         if not self._INTERSECT_DATASET.exists():
             os.makedirs(self._INTERSECT_DATASET)
 
         # Verificar si hay datasets ya intersectados
-        print(" > Revisando si existe interseccion previa")
+        #print(" > Revisando si existe interseccion previa")
         for file_name in os.listdir(self._ORIGINAL_DATASET):
-            if file_name in os.listdir(self._INTERSECT_DATASET):
-                print("   > ", file_name, " ya ha sido intersectado anteriormente")
-            else:
+            if file_name not in os.listdir(self._INTERSECT_DATASET):
                 origin_file = self._ORIGINAL_DATASET / file_name
                 shutil.copy(origin_file, self._INTERSECT_DATASET)
-                print("   > ", file_name, " no ha sido intersectado anteriormente, copiando")
+                # print("   > ", file_name, " no ha sido intersectado anteriormente, copiando")
 
 
     """
@@ -286,21 +284,21 @@ class AnalogyTestClass:
     :return: retorna un booleano, si hay datasets para evaluar
     """
     def intersectDataset(self, word_vector):
-        print("Intersectando datasets...")
+        #print("Intersectando datasets...")
         next_dataset_path = self._INTERSECT_DATASET
         deleted_files = 0
 
         # Revisar cada archivo dentro de la carpeta de dataset
-        print(" > Revision de archivos en dataset")
+        #print(" > Revision de archivos en dataset")
         to_delete_files = []
         for file_name in os.listdir(next_dataset_path):
-            print(" > Revisando " + file_name)
+            #print(" > Revisando " + file_name)
             file_path = next_dataset_path / file_name
             deleted_element = 0
             lines = []
 
-            if "4tupla" in str(file_path):
-                print("   Revisando archivo de tipo 4-tupla")
+            #if "4tupla" in str(file_path):
+            #    print("   Revisando archivo de tipo 4-tupla")
 
             # Revisar el dataset intersectado que llevamos hasta el momento
             with io.open(file_path, 'r') as f:
@@ -355,7 +353,7 @@ class AnalogyTestClass:
             if len(lines) == 0:
                 deleted_files += 1
                 to_delete_files.append(file_path)
-                print(" > Archivo esta vacio, se procede a eliminar")
+                #print(" > Archivo esta vacio, se procede a eliminar")
                 continue
 
             # Escribir la nueva interseccion
@@ -363,9 +361,9 @@ class AnalogyTestClass:
                 for line in lines:
                     f.write(line)
 
-            print(" > Lineas eliminadas: " + str(deleted_element) + " de " + str(deleted_element + len(lines)))
+            #print(" > Lineas eliminadas: " + str(deleted_element) + " de " + str(deleted_element + len(lines)))
 
-        print(" > Archivos a eliminar: " + str(deleted_files))
+        #print(" > Archivos a eliminar: " + str(deleted_files))
         for file in to_delete_files:
             os.remove(file)
 
@@ -403,7 +401,7 @@ class AnalogyTestClass:
     :return: lista de archivos a usar en evaluacion
     """
     def getUntestedFiles(self, embedding_name):
-        print(">>> Buscando archivos sin testear")
+        #print(">>> Buscando archivos sin testear")
         test_files = self.getTestFiles()
         result_path = self._RESULT / embedding_name
 
@@ -412,10 +410,10 @@ class AnalogyTestClass:
             return test_files
 
         # Eliminar archivos que ya han sido utilizados en evaluacion
-        print(">>> Test files encontrados")
+        #print(">>> Test files encontrados")
         test_files_list = []
         for file in test_files:
-            print("   ", str(file))
+            #print("   ", str(file))
             # Path hacia el resultado del test asociado al archivo file
             temp_result_file_path = result_path / file.name
 
@@ -484,12 +482,12 @@ class AnalogyTestClass:
     ###########################################################################################
 
     def cleanResults(self):
-        print("Limpiando resultados temporales... ", end='')
+        #print("Limpiando resultados temporales... ", end='')
         temp_result_path = self._RESULT
         if temp_result_path.exists():
             shutil.rmtree(temp_result_path)
 
-        print("listo.")
+        #print("listo.")
 
     """
     Guarda resultados de analogias de forma temporal
@@ -508,7 +506,7 @@ class AnalogyTestClass:
 
         with io.open(temp_result_file, 'w') as f:
             for res in results_list:
-                print(res)
+                #print(res)
                 for word in res:
                     f.write(str(word) + " ")
 
@@ -545,13 +543,6 @@ class AnalogyTestClass:
 
             results.append([test_file_name, aux_result])
 
-        print(">>> Resultados")
-        for r in results:
-            print("    ", end='')
-            print(r)
-
-        print('')
-
         return results
 
 
@@ -577,7 +568,7 @@ class AnalogyTestClass:
 
             pair_list = tuple_list
 
-        print(" > Cantidad de analogias a evaluar: ", str(len(pair_list)))
+        #print(" > Cantidad de analogias a evaluar: ", str(len(pair_list)))
 
         oov_tuples = 0
         analogy_count = 0
@@ -630,7 +621,7 @@ class AnalogyTestClass:
 
             pair_list = tuple_list
 
-        print(" > Cantidad de analogias a evaluar: ", str(len(pair_list)))
+        #print(" > Cantidad de analogias a evaluar: ", str(len(pair_list)))
 
         oov_tuples = 0
         analogy_count = 0
@@ -682,7 +673,7 @@ class AnalogyTestClass:
 
             pair_list = tuple_list
 
-        print(" > Cantidad de analogias a evaluar: ", str(len(pair_list)))
+        #print(" > Cantidad de analogias a evaluar: ", str(len(pair_list)))
 
         oov_tuples = 0
         analogy_count = 0
@@ -727,16 +718,21 @@ class AnalogyTestClass:
     def evaluateWordVector(self, word_vector_name, word_vector):
         # Obtencion de archivos que faltan por testear
         test_file_list = self.getUntestedFiles(word_vector_name)
-        print("Untested files:")
-        for file in test_file_list:
-            print(">", file)
+        #print("Untested files:")
+        #for file in test_file_list:
+        #    print(">", file)
 
         # Revisamos todos los archivos para realizar test
+        res = []
         for file in test_file_list:
             file_results = self.evaluateFile(file, word_vector)
 
             # Guardamos los resultados
             self.saveResults(word_vector_name, file.name, file_results)
+
+            res.append([file.name, file_results])
+
+        return res
 
 
     """
@@ -746,7 +742,7 @@ class AnalogyTestClass:
     :param word_vector: word embedding a evaluar
     """
     def evaluateFile(self, file, word_vector):
-        print(">>> Testing: ", file.name)
+        #print(">>> Testing: ", file.name)
         pair_list = self.getAnalogyPairs(file)
 
         res = []

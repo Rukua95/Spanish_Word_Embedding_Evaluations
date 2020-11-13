@@ -8,32 +8,12 @@ import os
 import io
 import Constant
 
-# Path a carpeta principal
-MAIN_FOLDER = Constant.MAIN_FOLDER
-
-# Path a carpeta con los embeddings
-EMBEDDING_FOLDER = Constant.EMBEDDING_FOLDER
-
-# Extraccion de embeddings
-def get_wordvector(file, cant=None):
-    wordvector_file = EMBEDDING_FOLDER / file
-    print(">>> Cargando vectores " + file + " ...", end='')
-    word_vector = KeyedVectors.load_word2vec_format(wordvector_file, limit=cant)
-    print("listo.\n")
-
-    return word_vector
-
-_DATASET = Constant.DATA_FOLDER / "_Constitucion\\constitucion_data.csv"
-_RESULT = Constant.RESULTS_FOLDER / "Constitucion"
-
-
-
 
 ###########################################################################################
 # Clasificacion a partir de vectores promedio
 ###########################################################################################
 
-class ConstitucionTestClass:
+class MeanVectorClassificationTestClass:
     total_words = []
 
     # Dataset y resultados
@@ -321,9 +301,6 @@ class ConstitucionTestClass:
     """
     def MeanVectorEvaluation(self, word_vector_name, word_vector):
         print(">>> Evaluando embedding ", str(word_vector_name))
-
-        # En caso de palabras fuera del vocabulario
-        self.oov_vector = np.random.rand(word_vector.vectorSize())
 
         # Obtencion de datos ordenados, ademas de sus respectivos vectores promedios.
         dataA, dataB = getSortedDataset()

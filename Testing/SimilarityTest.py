@@ -19,12 +19,20 @@ class SimilarityTestClass:
 
     _RESULT = Constant.RESULTS_FOLDER / "Similarity"
 
+    """
+    Constructor de la clase para evaluacion de word embeddings segun similaridad de palabras
+    
+    :param lower: booleano para determinar como se leen las minusculas en los dataset utilizado, por defecto las 
+                  mayusculas son reemplazadas por minusculas
+    :param use_intersect_dataset: booleano que determinar si se utiliza el vocabulario de los dataset intersectados
+                                  con el vocabulario de los embeddings, por defecto es False
+    :param debug: booleano para proceso de debugging
+    :param dataset: lista con el nombre de los datasets a utilizar, si se encuentra vacia, se utilizan todos los 
+                    datasets disponibles
+    """
     def __init__(self, lower=True, use_intersect_dataset=False, datasets=[]):
-        print(">>> Test de Similaridad <<<")
-
         self._lower = lower
         self._use_intersect_dataset = use_intersect_dataset
-
         self._datasets = datasets
 
         # Interseccion de datasets
@@ -47,9 +55,9 @@ class SimilarityTestClass:
 
     :param embedding: lista de vectores de palabras
     :param word_pairs: lista de pares de palabras con su puntaje de similaridad
-
+    
     :return: lista con correlacion sperman-rho, cantidad de pares evaluados, cantidad de pares no evaluados
-             y cantidad de palabras no encontradas en el vocabulario
+        y cantidad de palabras no encontradas en el vocabulario
     """
     def evaluate(self, word_vector, word_pairs):
         not_found_pairs = 0
@@ -100,10 +108,10 @@ class SimilarityTestClass:
             gold.append(similarity)
             pred.append(score)
 
-        print("    Pares repetidos:", repeated_pairs)
-        print("    Pares de palabras eliminadas:", str(not_found_pairs))
-        print("    Palabras no encontradas:", str(not_found_words))
-        print("    ", not_found_list)
+        #print("    Pares repetidos:", repeated_pairs)
+        #print("    Pares de palabras eliminadas:", str(not_found_pairs))
+        #print("    Palabras no encontradas:", str(not_found_words))
+        #print("    ", not_found_list)
 
         # Lista de resultados
         p_r = ["pearson", pearsonr(gold, pred)[0]]
@@ -120,10 +128,13 @@ class SimilarityTestClass:
     ###########################################################################################
 
     """
-    Metodo para eliminar dataset obtenido a travez de intersectar vocabulario de embeddings
+    Metodo para elimina los actuales datasets generados como la interseccion de los vocabularios de los embeddings,
+    y genera nuevos datasets para ser utilizados. Si no se utiliza la interseccion de los vocabularios, este metodo solo
+    elimina el dataset de la interseccion de vocabularios.
     """
     def resetIntersectDataset(self):
-        print(">>> Reset/Eliminacion de carpeta de interseccion de datasets")
+        #print(">>> Reset/Eliminacion de carpeta de interseccion de datasets")
+
         intersect_dataset_path = self._INTERSECT_DATASET
 
         if intersect_dataset_path.exists():
@@ -134,10 +145,12 @@ class SimilarityTestClass:
 
 
     """
-    Metodo que crea dataset con la interseccion de vocabulario de los embeddings guardados
+    Metodo que prepara los dataset utilizados en la evaluacion, para ser intersectados con el vocabulario de embeddings.
+    En caso de que existan datasets ya intersectados, este metodo solo prepara los datasets que no se encuentren 
+    intersectados.
     """
     def createIntersectDataset(self):
-        print(">>> Copiando dataset original para realizar interseccion")
+        #print(">>> Copiando dataset original para realizar interseccion")
 
         # Verificar que existe carpeta para guardar nuevo dataset
         if not self._INTERSECT_DATASET.exists():
@@ -145,30 +158,33 @@ class SimilarityTestClass:
 
         # Verificar si hay datasets ya intersectados
         for file_name in os.listdir(self._ORIGINAL_DATASET):
-            if file_name in os.listdir(self._INTERSECT_DATASET):
-                print("   ", file_name, " ya ha se encuentra en dataset de interseccion, reutilizando")
-
-            else:
+            if file_name not in os.listdir(self._INTERSECT_DATASET):
                 origin_file = self._ORIGINAL_DATASET / file_name
                 shutil.copy(origin_file, self._INTERSECT_DATASET)
-                print("   ", file_name, " no se encuentra en dataset de interseccion, copiando")
+                #print("   ", file_name, " no se encuentra en dataset de interseccion, copiando")
 
 
     """
-    Metodo que elimina palabras de los dataset, que esten fuera del vocabulario del word embeddings dado
+    Metodo que intersecta los datasets utilizados en la evaluacion, con el vocabulario del embedding dado. Previo a 
+    utilizar este metodo, es necesario crear los datasets para el proceso de interseccion.
     
     :param word_vector: word embedding para comparar vocabulario
+    :return: booleano que determina si despues de realizada la interseccion existen dataset con los cuales realizar
+        la evaluacion.
     """
     def intersectDataset(self, word_vector):
-        print(">>> Intersectando datasets con vocabulario de embedding...")
+        #print(">>> Intersectando datasets con vocabulario de embedding...")
+
         next_dataset_path = self._INTERSECT_DATASET
         deleted_files = 0
 
         # Revisar cada archivo dentro de la carpeta de dataset
-        print(" > Revision de archivos en dataset")
+        #print(" > Revision de archivos en dataset")
+
         to_delete_files = []
         for file_name in os.listdir(next_dataset_path):
-            print("   Revisando " + file_name)
+            #print("   Revisando " + file_name)
+
             file_path = next_dataset_path / file_name
             deleted_element = 0
             lines = []
@@ -190,13 +206,14 @@ class SimilarityTestClass:
 
                     lines.append(line)
 
-            print("   > Lineas eliminadas:", str(deleted_element), "de", str(deleted_element + len(lines)))
+            #print("   > Lineas eliminadas:", str(deleted_element), "de", str(deleted_element + len(lines)))
 
             # Eliminamos archivo que no aporta al analisis
             if len(lines) == 0:
                 deleted_files += 1
                 to_delete_files.append(file_path)
-                print("   > Archivo esta vacio, se procede a eliminar")
+                #print("   > Archivo esta vacio, se procede a eliminar")
+
                 continue
 
             # Escribir documento
@@ -204,7 +221,8 @@ class SimilarityTestClass:
                 for line in lines:
                     f.write(line)
 
-        print(" > Archivos a eliminar: " + str(deleted_files) + "\n")
+        #print(" > Archivos a eliminar:", str(deleted_files) + "\n")
+
         for file in to_delete_files:
             os.remove(file)
 
@@ -212,12 +230,12 @@ class SimilarityTestClass:
 
 
     """
-    Obtencion de archivos de test desde carpeta de datasets
+    Obtencion de datasets requeridos para realizar la evaluacion.
     
-    :return: lista de nombres de dataset
+    :return: lista de nombres de dataset.
     """
     def getTestFiles(self):
-        print(" > Obteniendo nombre de archivos de test desde:", str(self._DATASET))
+        #print(" > Obteniendo nombre de archivos de test desde:", str(self._DATASET))
         if not self._DATASET.exists():
             raise Exception("No se logro encontrar carpeta con test")
 
@@ -241,15 +259,14 @@ class SimilarityTestClass:
 
 
     """
-    Obtencion de pares de palabras en algun archivo
+    Obtencion de informacion presente en un dataset dado.
     
-    :param file: nombre de archivo test
-    :param lower: determina si se cambian las mayusculas por minusculas
+    :param file: nombre de archivo del dataset.
     
-    :return: lista con pares de palabras y su puntaje de similaridad
+    :return: lista con pares de palabras y su puntaje de similaridad.
     """
     def getWordPairs(self, file):
-        print(" > Extraccion de dataset")
+        #print(" > Extraccion de dataset")
 
         word_pairs = []
         with io.open(self._DATASET / file, 'r', encoding='utf-8') as f:
@@ -282,7 +299,7 @@ class SimilarityTestClass:
             os.makedirs(save_path)
 
         result_path = save_path / (embedding_name + ".txt")
-        print(">>> Guardando resultados en:\n     " + str(result_path))
+        #print(">>> Guardando resultados en:", str(result_path))
 
         with io.open(result_path, 'w', encoding='utf-8') as f:
             for res in score:
@@ -300,12 +317,14 @@ class SimilarityTestClass:
     """
     Evalua un word embedding especifico y guarda el resultado en carpeta de resultados
 
-    :param word_vector_name: nombre de word embedding, utilizado para especificar nombre de
-                             archivo de resultados
+    :param word_vector_name: nombre de word embedding, utilizado para especificar nombre de 
+        archivo de resultados
     :param word_vector: word embedding a evaluar
+    
+    :return: lista con resultados para cada dataset
     """
     def evaluateWordVector(self, word_vector_name, word_vector):
-        print(">>> Evaluando embedding ", str(word_vector_name))
+        #print(">>> Evaluando embedding ", str(word_vector_name))
 
         # Obtencion de nombre de archivos de test
         test_file_list = self.getTestFiles()
@@ -313,7 +332,8 @@ class SimilarityTestClass:
 
         # Test en archivos individuales
         for test_file in test_file_list:
-            print(" > Evaluacion con dataset ", str(test_file))
+            #print(" > Evaluacion con dataset ", str(test_file))
+
             word_pairs = self.getWordPairs(test_file)
 
             # Evaluamos embeddings con dataset especifico
@@ -328,6 +348,7 @@ class SimilarityTestClass:
         # Guardando resultados
         self.saveResults(word_vector_name, scores)
 
-        print(">>> Resultados")
-        for tuple in scores:
-            print(tuple)
+        #for r in scores:
+        #    print(r)
+
+        return scores

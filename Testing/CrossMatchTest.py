@@ -18,10 +18,9 @@ class CrossMatchTestClass:
     # Resultados
     _RESULT = Constant.RESULTS_FOLDER / "CrossMatch"
 
-    def __init__(self, cantidad=None, main_sample=100000, sub_sample_size=200, repetitions=500):
-        print("Test de CrossMatch")
+    def __init__(self, main_sample=100000, sub_sample_size=200, repetitions=500):
+        print(">>> Test de CrossMatch <<<")
 
-        self._embeddings_size = cantidad
         self._main_sample = main_sample
         self._sub_sample_size = sub_sample_size
         self._repetitions = repetitions
@@ -53,10 +52,6 @@ class CrossMatchTestClass:
                 G.add_edge(i, j)
                 G[i][j]["weight"] = matrix[i][j]
                 G[j][i]["weight"] = matrix[j][i]
-
-        #print("Graph description: ")
-        #print(G.nodes)
-        #print(G.edges)
 
         return G
 
@@ -129,7 +124,7 @@ class CrossMatchTestClass:
             if pair[1] < self._sub_sample_size and pair[0] >= self._sub_sample_size:
                 c1 += 1
 
-        #print("#Cross pair: " + str(c1))
+        print("> Cross pair: " + str(c1))
         sum = 0
         for c in range(c1+1):
             if (self._sub_sample_size - c) % 2 == 1:
@@ -201,7 +196,7 @@ class CrossMatchTestClass:
 
         result_file = self._RESULT / (embedding1_name + "_" + embedding2_name + ".txt")
         with io.open(result_file, 'w', encoding='utf-8') as f:
-            f.write(str(results) + "\n")
+            f.write("p-value:\t" + str(results) + "\n")
 
 
     ###########################################################################################
@@ -236,16 +231,18 @@ class CrossMatchTestClass:
             matrix = self.getDistanceMatrix(word_embedding1, word_embedding2, word_list1, word_list2)
 
             G = self.getGraph(matrix)
+
+            print("Begin matching...")
             M = nx.max_weight_matching(G, True)
+            print("> Done")
 
             p_value, c1 = self.getScore(M)
-            if (h+1) % 10 == 0:
-                print("p-value " + str(h) + ": " + str(p_value))
+            print("p-value " + str(h) + ": " + str(p_value))
 
             sum += p_value
 
         pair_result = sum / self._repetitions
-        results[word_embedding_name1 + "__" + word_embedding_name2] = pair_result
+        results = ["p-value:", pair_result]
         self.saveResult(word_embedding_name1, word_embedding_name2, pair_result)
 
         print("Result: " + str(pair_result), end='\n\n')
