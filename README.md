@@ -27,30 +27,31 @@
 
 This is a tool for the validation of word embeddings for the Spanish language. This tool use different types 
 of evaluation methods: Word Similarity, Word Analogy, Outlier Detection, Cross-match and Text Classification.
+More about the dataset used are shown in [Reference](#reference).
 
 <!-- DATASETS -->
 ## Datasets
 
 ### Word Similarity
 
-* MC-30
-* RG-65
-* SemEval-2017
-* WordSim353
-* MultiSimLex
+* MC-30 \(translation\)
+* RG-65 \(translation\)
+* SemEval-2017 \(spanish section\)
+* WordSim353 \(translation\)
+* MultiSimLex \(spanish section\)
 
 ### Word Analogy
 
-* Google Analogy
+* Google Analogy \(translation\)
 * SATS
 
 ### Outlier Detection
 
-* WordSim-500
+* WordSim-500 \(spanish section\)
 
 ### Text Classification
 
-* 
+* ArgumentMining2017
 
 
 <!-- USAGE EXAMPLE -->
@@ -87,7 +88,7 @@ these word embedding
 ## Results
 
 This evaluation tool has been used to compare different word embeddings and the results obtained are presented below.
-Information about the word embeddings used are shown in [Reference](#reference)
+More about the word embeddings used are shown in [Reference](#reference)
 
 ### Word Similiarity
 
@@ -146,20 +147,22 @@ analogys.
 
 ### Text Classification
 
-The results shown correspond to task A and B of the same job where the dataset used is defined, using lstm during 
-classification.
+The results shown correspond to task A and B defined in the same job where the dataset used is shown. Results 
+were obtained using an LSTM network in the classification process.
 
- 
 
 
 <!-- REFERENCE -->
 ## Reference
 
-* [1] [Spanish translation of MC30]()
-* [2] [Spanish translation of RG65]()
-* [3] [Spanish translation of WordSim353]()
-* [4] [Spanish section of SemEval-2017]()
-* [5] [Spanish translation of MultiSimLex]()
-* [6] [Spanish translation of Google Analogy]()
-* [7] [Spanish section of WordSim500]()
-* [8] [Dataset and task definition for text classification evaluation]()
+* [1] [About spanish translation of MC30](https://www.aclweb.org/anthology/D09-1124/)
+* [2] [About spanish translation of RG65](https://www.aclweb.org/anthology/P15-2001/)
+* [3] [About spanish translation of WordSim353](https://www.aclweb.org/anthology/D09-1124/)
+* [4] [About spanish section of SemEval-2017](https://www.aclweb.org/anthology/S17-2002/)
+* [5] [About spanish section of MultiSimLex](https://multisimlex.com/)
+* [6] [About spanish translation of Google Analogy](https://crscardellino.github.io/SBWCE/)
+* [7] [About spanish section of WordSim500](https://www.semanticscholar.org/paper/Automated-Generation-of-Multilingual-Clusters-for-Blair-Merhav/ba14d02895ed8d93b3d44e5451be83f3c9e767fa)
+* [8] [About Outlier Detection task](https://www.aclweb.org/anthology/W16-2508/)
+* [8] [About Cross-match task](https://www.aclweb.org/anthology/W17-5303/)
+* [10] [Dataset for text classification evaluation](https://github.com/uchile-nlp/ArgumentMining2017)
+* [11] [Task definition for text classification evaluation](https://www.aclweb.org/anthology/W17-5101/)
