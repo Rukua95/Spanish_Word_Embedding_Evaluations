@@ -109,17 +109,17 @@ The results shown are the mean across the different datasets used for this evalu
 ### Word Analogy
 
 The results shown are the mean across the different datasets used for this evaluation method and different types of 
-analogys.
+analogys. The used metric was 3CosMul.
 
-| Word Embeddings   | GA Semantic | GA Syntactic | CATS Semantic | CATS Syntactic |
+| Word Embeddings   | GA Semantic | GA Syntactic | SATS Semantic | SATS Syntactic |
 | :---------------- | :--: | :--: | :--: | :--: |
-| FastText-SUC(M)   |  |  |  |  |
-| FastText-SUC(L)   |  |  |  |  |
-| FastText-SUC(NL)  |  |  |  |  |
-| FastText-SBWC     |  |  |  |  |
-| FastText-Wiki     |  |  |  |  |
-| GloVe-SBWC        |  |  |  |  |
-| W2V-SBWC          |  |  |  |  |
+| FastText-SUC(M)   | 0.49 | 0.41 | 0.34 | 0.24 |
+| FastText-SUC(L)   | **0.57** | 0.49 | **0.45** | **0.35** |
+| FastText-SUC(NL)  | 0.56 | **0.51** | 0.41 | **0.35** |
+| FastText-SBWC     | 0.55 | 0.50 | 0.41 | 0.33 |
+| FastText-Wiki     | 0.51 | 0.48 | 0.41 | **0.35** |
+| GloVe-SBWC        | 0.54 | 0.41 | 0.20 | **0.35** |
+| W2V-SBWC          | 0.17 | 0.41 | 0.24 | 0.17 |
 
 
 ### Outlier Detection
@@ -150,6 +150,16 @@ analogys.
 The results shown correspond to task A and B defined in the same job where the dataset used is shown. Results 
 were obtained using an LSTM network in the classification process.
 
+| Word Embeddings   | Task A | Task B |
+| :---------------- | :--: | :--: |
+| FastText-SUC(M)   | **0.57** | **0.52** |
+| FastText-SUC(L)   | 0.53 | 0.49 |
+| FastText-SUC(NL)  | 0.53 | 0.49 |
+| FastText-SBWC     | 0.54 | 0.47 |
+| FastText-Wiki     | 0.54 | 0.48 |
+| GloVe-SBWC        | 0.53 | 0.49 |
+| W2V-SBWC          | 0.53 | 0.48 |
+| BETO              | 0.46 | 0.48 |
 
 
 <!-- REFERENCE -->
